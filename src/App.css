@@ -1,0 +1,75 @@
+
+
+.contenedor-principal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 100vh;
+    width: 100vw;
+}
+
+.contenedor-tabla {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-inline: 25px;
+    padding-block: 50px;
+}
+
+.contenedor-tabla-filtros {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.subtitulos-configuracion{
+    padding-block: 10px;
+}
+
+.contenedor-simple {
+    flex-grow: 1;
+    margin-inline: auto;
+    overflow-y: auto !important;
+    max-height: 100vh;
+    padding-bottom: 50px;
+}
+
+
+.espacioFinalHover:hover {
+  background-color: var(--mantine-color-dark-5);
+  transition: background 0.2s;
+}
+
+.division_carta {
+    padding-block: 10px;
+    cursor: pointer;
+    padding-inline: var(--mantine-spacing-md);
+    transition: background 0.1s;
+}
+
+.division_carta:hover {
+    background-color: var(--mantine-color-dark-8);
+}
+
+.contenedor-grilla {
+    gap: 50px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-inline: auto;
+    overflow-y: auto !important;
+    max-height: 100vh;
+    padding-inline: 25px;
+    padding-block: 50px;
+}
+
+.no-drag {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.year-input:focus-within {
+    border-color: var(--mantine-color-red-7);
+}
