@@ -1,102 +1,139 @@
-import { Modal, Button, Flex, Select, NumberInput } from '@mantine/core';
-
+import { Modal, Button, Flex, Select, NumberInput, Alert, Loader, Center, ColorInput } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
+import { useEffect } from 'react';
+import { useAssignSubject } from '../../../hooks/useAssignSubject';
 
-function AsignSubjectModal({ opened, close, id }: { opened: boolean; close: () => void; id?: string }) {
-    const form = useForm({
-        mode: 'uncontrolled',
-        initialValues: {
-            subject: '',
-            course: '',
-            teacher: '',
-            hours: undefined,
-        },
-        validate: {
-            subject: (value) => !value ? 'Debe seleccionar una materia' : null,
-            course: (value) => !value ? 'Debe seleccionar un curso' : null,
-            teacher: (value) => !value ? 'Debe seleccionar un profesor' : null,
-            hours: (value) => value === undefined || value === null || value <= 0 ? 'Debe ingresar un número de horas válido' : null,
-        }
+interface AsignSubjectModalProps {
+  opened: boolean;
+  close: () => void;
+  id?: number | null;
+  onSuccess?: () => void;
+}
+
+function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalProps) {
+  const {
+    subjectOptions,
+    courseOptions,
+    professorOptions,
+    loadingOptions,
+    loadOptions,
+    createSubject,
+    loading,
+    error,
+  } = useAssignSubject();
+
+  // Recarga las opciones cada vez que el modal se abre
+  useEffect(() => {
+    if (opened) loadOptions();
+  }, [opened]);
+
+  const form = useForm({
+    mode: 'uncontrolled',
+    initialValues: {
+      subject: '',
+      course: '',
+      teacher: '',
+      hours: undefined as number | undefined,
+      color: '#FFFFFF',
+    },
+    validate: {
+      subject: (value) => !value ? 'Debe seleccionar una materia' : null,
+      course: (value) => !value ? 'Debe seleccionar un curso' : null,
+      teacher: (value) => !value ? 'Debe seleccionar un profesor' : null,
+      hours: (value) => !value || value <= 0 ? 'Debe ingresar un número de horas válido' : null,
+      color: (value) => !value ? 'Debe seleccionar un color' : null,
+    }
+  });
+
+  const handleClose = () => {
+    form.reset();
+    close();
+  };
+
+  const handleSubmit = async (values: typeof form.values) => {
+    const ok = await createSubject({
+      color: values.color,
+      week_hours: values.hours!,
+      id_staff: Number(values.teacher),
+      id_course: Number(values.course),
+      id_base_subject: Number(values.subject),
     });
 
-    const handleClose = () => {
-        form.reset(); // resetea los valores
-        close();       // cierra el modal
-    };
+    if (ok) {
+      form.reset();
+      onSuccess?.();
+      close();
+    }
+  };
 
-    // Mock data
-    const subjects = [
-        { value: 'math', label: 'Matemáticas' },
-        { value: 'physics', label: 'Física' },
-        { value: 'chemistry', label: 'Química' },
-        { value: 'history', label: 'Historia' },
-        { value: 'literature', label: 'Literatura' },
-    ];
+  return (
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={id ? "Editar materia" : "Asignar materia"}
+      yOffset='15vh'
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+    >
+      {loadingOptions ? (
+        <Center h={200}>
+          <Loader />
+        </Center>
+      ) : (
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Flex direction="column" gap="md">
+            {error && (
+              <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                {error}
+              </Alert>
+            )}
 
-    const courses = [
-        { value: '1a', label: '1° A' },
-        { value: '1b', label: '1° B' },
-        { value: '2a', label: '2° A' },
-        { value: '2b', label: '2° B' },
-        { value: '3a', label: '3° A' },
-    ];
+            <Select
+              placeholder="Selecciona la materia"
+              data={subjectOptions}
+              key={form.key('subject')}
+              {...form.getInputProps('subject')}
+              searchable
+            />
+            <Select
+              placeholder="Selecciona el curso"
+              data={courseOptions}
+              key={form.key('course')}
+              {...form.getInputProps('course')}
+              searchable
+            />
+            <Select
+              placeholder="Selecciona el profesor"
+              data={professorOptions}
+              key={form.key('teacher')}
+              {...form.getInputProps('teacher')}
+              searchable
+            />
+            <NumberInput
+              placeholder="Número de horas cátedra"
+              min={1}
+              max={40}
+              key={form.key('hours')}
+              {...form.getInputProps('hours')}
+            />
+            <ColorInput
+              placeholder="Color de la materia"
+              key={form.key('color')}
+              {...form.getInputProps('color')}
+              swatches={['#2e2e2e', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14']}
+            />
 
-    const teachers = [
-        { value: 'teacher1', label: 'Prof. García' },
-        { value: 'teacher2', label: 'Prof. Martínez' },
-        { value: 'teacher3', label: 'Prof. López' },
-        { value: 'teacher4', label: 'Prof. Rodríguez' },
-        { value: 'teacher5', label: 'Prof. González' },
-    ];
-
-    return (
-        <Modal
-            opened={opened}
-            onClose={handleClose} // <-- usamos la función que resetea
-            title="Asignar materia"
-            yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }} 
-        >
-            <form onSubmit={form.onSubmit((values) => console.log(values))}>
-                <Flex direction="column" gap="md">
-                    <Select
-                        placeholder="Selecciona la materia"
-                        data={subjects}
-                        key={form.key('subject')}
-                        {...form.getInputProps('subject')}
-                        searchable
-                    />
-                    <Select
-                        placeholder="Selecciona el curso"
-                        data={courses}
-                        key={form.key('course')}
-                        {...form.getInputProps('course')}
-                        searchable
-                    />
-                    <Select
-                        placeholder="Selecciona el profesor"
-                        data={teachers}
-                        key={form.key('teacher')}
-                        {...form.getInputProps('teacher')}
-                        searchable
-                    />
-                    <NumberInput
-                        placeholder="Número de horas catedra"
-                        min={1}
-                        max={40}
-                        key={form.key('hours')}
-                        {...form.getInputProps('hours')}
-                    />
-                    <Button type="submit" style={{ marginTop: '15px' }}>
-                        {id ? `Editar ${id}` : "Crear"}
-                    </Button>
-                </Flex>
-            </form>
-        </Modal>
-    );
+            <Button type="submit" loading={loading} style={{ marginTop: '15px' }}>
+              {id ? "Guardar cambios" : "Asignar materia"}
+            </Button>
+          </Flex>
+        </form>
+      )}
+    </Modal>
+  );
 }
 
 export default AsignSubjectModal;

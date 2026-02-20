@@ -10,6 +10,7 @@ import Profile from './pages/Profile/Profile';
 import SchoolCalendar from './pages/SchoolCalendar/SchoolCalendar';
 
 import Login from './pages/Login/Login';
+import Register from './pages/Login/Register';
 
 import './App.css'
 
@@ -41,6 +42,12 @@ function App() {
             <Route path="/" element={
               <LayoutSimple>
                 <Login />
+              </LayoutSimple>
+            } />
+
+            <Route path="/register" element={
+              <LayoutSimple>
+                <Register />
               </LayoutSimple>
             } />
 

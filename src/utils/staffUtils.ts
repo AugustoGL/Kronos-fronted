@@ -1,10 +1,8 @@
-import { listStaff } from '../services/staffServices';
+import { type Staff } from '../services/staffService';
 import { normalizeText } from '../utils/utils';
 
-
-
 export function filterStaff(
-  data: typeof listStaff,
+  data: Staff[],
   filters: { nameFilter: string; roleFilter: string }
 ) {
   const name = normalizeText(filters.nameFilter);
@@ -18,9 +16,8 @@ export function filterStaff(
   );
 }
 
-
 export function sortStaff(
-  data: typeof listStaff,
+  data: Staff[],
   sortConfig: { key: 'first_name' | 'last_name'; order: 'asc' | 'desc' }
 ) {
   if (!sortConfig.key || !sortConfig.order) return data;
@@ -34,7 +31,7 @@ export function sortStaff(
   });
 }
 
-export function exportStaffToCSV(data: typeof listStaff) {
+export function exportStaffToCSV(data: Staff[]) {
   const csvData = [
     ['Nombre', 'Apellido', 'Documento', 'Teléfono', 'Email', 'Horas Cátedra'],
     ...data.map(item => [

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { listStaff } from '../services/staffServices';
+import { useStaff } from './useStaff';
 import {
   filterStaff,
   sortStaff,
@@ -16,30 +16,30 @@ interface SortConfig {
 
 export function useStaffTable() {
 
+  const { staff, loading, error, refetch } = useStaff();
+
   const [nameFilter, setNameFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, order: null });
 
   const allRoles = useMemo(() => {
-    return Array.from(new Set(listStaff.map(e => e.rol)));
-  }, []);
+    return Array.from(new Set(staff.map(e => e.rol)));
+  }, [staff]);
 
   const filteredData = useMemo(() => {
-    const filtered = filterStaff(listStaff, { nameFilter, roleFilter });
+    const filtered = filterStaff(staff, { nameFilter, roleFilter });
     if (sortConfig.key && sortConfig.order) {
       return sortStaff(filtered, { key: sortConfig.key, order: sortConfig.order });
     }
     return filtered;
-  }, [nameFilter, roleFilter, sortConfig]);
+  }, [staff, nameFilter, roleFilter, sortConfig]);
 
   const handleSort = (key: SortKey) => {
     setSortConfig(prev => {
       if (prev.key === key) {
-        const newOrder = prev.order === 'asc' ? 'desc' : 'asc';
-        return { key, order: newOrder };
-      } else {
-        return { key, order: 'asc' };
+        return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
       }
+      return { key, order: 'asc' };
     });
   };
 
@@ -56,6 +56,9 @@ export function useStaffTable() {
     filteredData,
     sortConfig,
     handleSort,
-    handleExportData
+    handleExportData,
+    loading,
+    error,
+    refetch,
   };
 }

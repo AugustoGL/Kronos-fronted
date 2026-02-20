@@ -1,6 +1,6 @@
 
 //Mantine
-import { Table, Input, ActionIcon, TagsInput, Group, Tooltip } from '@mantine/core';
+import { Table, Input, ActionIcon, TagsInput, Group, Tooltip, Loader, Alert } from '@mantine/core';
 import { IconPlus, IconDownload, IconSignature, IconTrash, IconEdit } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -31,7 +31,10 @@ function SubjectsPage() {
         handleSort,
         handleExportData,
         allCourses,
-        filteredData
+        filteredData,
+        loading, 
+        error,
+        refetch 
     } = useSubjectsTable();
 
 
@@ -91,15 +94,19 @@ function SubjectsPage() {
         </Table.Tr>
     ));
 
+    if (loading) return <Loader color="yellow" />;
+    if (error) return <Alert color="red">{error}</Alert>;
+
     return (
         <div className='contenedor-tabla'>
 
             <CreateSubjectModal opened={createOpened} close={closeCreate} />
 
             <AsignSubjectModal
-                opened={assignOpened}
-                close={closeAssign}
-                id={subjectToEdit}
+            opened={assignOpened}
+            close={closeAssign}
+            id={subjectToEdit}
+            onSuccess={refetch}   // 👈 esto recarga la tabla al asignar
             />
             <DeleteSubjectModal
                 opened={deleteOpened}

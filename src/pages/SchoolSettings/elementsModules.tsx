@@ -1,9 +1,9 @@
 export const elementsModules = [
   // Lunes
-  { id: 'l1', dia: 'lunes', horaInicio: '07:30', horaFin: '08:10', id_colegio: 1 },
-  { id: 'l2', dia: 'lunes', horaInicio: '08:10', horaFin: '08:50', id_colegio: 1 },
-  { id: 'l4', dia: 'lunes', horaInicio: '09:05', horaFin: '09:45', id_colegio: 2 },
-  { id: 'l5', dia: 'lunes', horaInicio: '09:45', horaFin: '10:25', id_colegio: 2 },
+  { id: 'l1', dia: 'lunes', horaInicio: '07:30', horaFin: '08:10', },
+  { id: 'l2', dia: 'lunes', horaInicio: '08:10', horaFin: '08:50',  },
+  { id: 'l4', dia: 'lunes', horaInicio: '09:05', horaFin: '09:45', },
+  { id: 'l5', dia: 'lunes', horaInicio: '09:45', horaFin: '10:25',  },
   { id: 'l7', dia: 'lunes', horaInicio: '10:40', horaFin: '11:20', id_colegio: 3 },
   { id: 'l8', dia: 'lunes', horaInicio: '11:20', horaFin: '12:00', id_colegio: 3 },
   { id: 'l10', dia: 'lunes', horaInicio: '13:00', horaFin: '13:30', id_colegio: 1 },

@@ -8,13 +8,41 @@ import {
     TextInput,
     PasswordInput,
     Flex,
+    Alert,
 } from "@mantine/core";
 
-import { IconBrandGoogle } from '@tabler/icons-react';
+import { IconBrandGoogle, IconAlertCircle } from '@tabler/icons-react';
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useLogin } from "../../hooks/useLogin";
+import type { LoginCredentials } from "../../services/authService";
 
 export default function Login() {
+    const navigate = useNavigate();
+    const { login, loading, error } = useLogin();
+
+    const [form, setForm] = useState<LoginCredentials>({
+        username: "",
+        password: "",
+    });
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+        e.preventDefault();
+        await login(form, {
+            onSuccess: () => {
+                navigate("/subject");
+            },
+        });
+    };
+
+    console.log(import.meta.env.VITE_API_URL)
+
     return (
         <Flex
             style={{ height: "90vh", width: "100vw" }}
@@ -25,61 +53,79 @@ export default function Login() {
                 withBorder
                 shadow="sm"
                 radius="md"
-                c={'blue'}
-                
+                c="blue"
                 p="lg"
                 style={{ maxWidth: 400, width: "100%" }}
             >
-                {/* Logo */}
-
-
-                {/* Welcome */}
-                <Text
-                    ta="center"
-                    fw={500}
-                    size="lg"
-                    mb="lg"
-                >
+                <Text ta="center" fw={500} size="lg" mb="lg">
                     ¡Bienvenido nuevamente!
                 </Text>
-                {/* Google */}
+
                 <Button
                     size="md"
                     variant="default"
                     fullWidth
-                    leftSection={
-                        <IconBrandGoogle />
-                    }
+                    leftSection={<IconBrandGoogle />}
                 >
                     Continuar con Google
                 </Button>
 
                 <Divider my="lg" />
 
-                {/* Login form (opcional si querés login por email directo) */}
-                <Stack>
-                    <TextInput size="md" placeholder="Ingresa tu correo electronico" />
-                    <PasswordInput size="md" placeholder="Ingresa tu contraseña" />
-                    <Button
-                        size="md"
-                        component={Link}
-                        to="/subject"
-                        fullWidth
-                    >                        Ingresar
-                    </Button>
-                    <Anchor
-                        href="https://mantine.dev/" target="_blank" underline="hover"
-                        ta="center" size="sm" 
-                    >
-                        ¿Olvidaste tu contraseña?
-                    </Anchor>
+                <form onSubmit={handleSubmit}>
+                    <Stack>
+                        {error && (
+                            <Alert
+                                icon={<IconAlertCircle size={16} />}
+                                color="red"
+                                variant="light"
+                            >
+                                {error}
+                            </Alert>
+                        )}
 
-                </Stack>
+                        <TextInput
+                            size="md"
+                            placeholder="Ingresa tu correo electrónico"
+                            name="username"
+                            type="email"          // 👈 esto valida formato email en el navegador
+                            value={form.username}
+                            onChange={handleChange}
+                            required
+                        />
+                        <PasswordInput
+                            size="md"
+                            placeholder="Ingresa tu contraseña"
+                            name="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Button
+                            size="md"
+                            fullWidth
+                            type="submit"
+                            loading={loading}
+                        >
+                            Ingresar
+                        </Button>
+
+                        <Anchor
+                            href="#"
+                            underline="hover"
+                            ta="center"
+                            size="sm"
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </Anchor>
+                    </Stack>
+                </form>
+
                 <Divider my="lg" />
-                <Text ta="center" size="sm" 
-                >
+
+                <Text ta="center" size="sm">
                     ¿Todavía no tienes una cuenta?
-                    <Anchor href="/signup" ml={5}>
+                    <Anchor component={Link} to="/register" ml={5}>
                         Registrate
                     </Anchor>
                 </Text>
