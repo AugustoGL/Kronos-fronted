@@ -1,54 +1,60 @@
-import { Modal, Button, Flex, TextInput, Group } from '@mantine/core';
+import { Modal, Button, Flex, TextInput, Group, Alert } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { useYear } from '../../../hooks/useYear';
 
-function CreateYearModal({ opened, onClose, onCreate }: {
+function CreateYearModal({ opened, onClose }: {
     opened: boolean;
     onClose: () => void;
-    onCreate: (year: { year: string }) => void;
 }) {
+    const { createYear, error } = useYear();
     const [year, setYear] = useState<string>('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!opened) {
-            setYear('');
-        }
+        if (!opened) setYear('');
     }, [opened]);
 
-    const handleCreate = () => {
-        if (year) {
-            onCreate({ year });
-            onClose();
-        }
+    const handleCreate = async () => {
+        const name = Number(year);
+        if (!name) return;
+        setLoading(true);
+        const ok = await createYear(name);
+        setLoading(false);
+        if (ok) onClose();
     };
 
     return (
         <Modal
             opened={opened}
             onClose={onClose}
-            title="Crear curso"
+            title="Crear año"
             yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
             <Flex direction="column" gap="md">
+                {error && (
+                    <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                        {error}
+                    </Alert>
+                )}
                 <Group gap="md" grow>
                     <TextInput
                         placeholder="Ingrese el año"
                         value={year}
                         onChange={e => setYear(e.currentTarget.value)}
                         withAsterisk
+                        type="number"
                     />
                     <Button
                         color="blue"
                         disabled={!year}
+                        loading={loading}
                         onClick={handleCreate}
                     >
                         Crear
                     </Button>
                 </Group>
-
             </Flex>
         </Modal>
     );

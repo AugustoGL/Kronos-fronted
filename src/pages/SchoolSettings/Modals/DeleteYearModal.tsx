@@ -1,72 +1,75 @@
-import { Modal, Button, Flex, Select, Group } from '@mantine/core';
+import { Modal, Button, Flex, Select, Group, Alert, Loader, Center } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { useYear } from '../../../hooks/useYear';
 
-function CreateYearModal({ opened, onClose, onDelete }: {
+function DeleteYearModal({ opened, onClose }: {
     opened: boolean;
     onClose: () => void;
-    onDelete: (year: string) => void;
 }) {
-
-
-    const [year, setYear] = useState<string | null>(null);
+    const { years, loading: loadingYears, error, deleteYear, refetch } = useYear();
+    const [selectedYearId, setSelectedYearId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!opened) {
-            setYear(null);
+            setSelectedYearId(null);
+        } else {
+            refetch();
         }
     }, [opened]);
 
-    const handleDelete = () => {
-        if (year) {
-            onDelete(year);
-            onClose();
-        }
+    const handleDelete = async () => {
+        if (!selectedYearId) return;
+        setLoading(true);
+        const ok = await deleteYear(Number(selectedYearId));
+        setLoading(false);
+        if (ok) onClose();
     };
+
+    const yearOptions = years.map(y => ({
+        value: String(y.id_year),
+        label: String(y.name),
+    }));
 
     return (
         <Modal
             opened={opened}
             onClose={onClose}
-            title="Crear curso"
+            title="Eliminar año"
             yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
-            <Flex direction="column" gap="md">
-                <Group gap="md" grow>
-                    <Select
-                        placeholder="Seleccione el año"
-                        data={[
-                            { value: '1', label: '1' },
-                            { value: '2', label: '2' },
-                            { value: '3', label: '3' },
-                            { value: '4', label: '4' },
-                            { value: '5', label: '5' },
-                            { value: '6', label: '6' },
-                        ]}
-                        value={year}
-                        onChange={setYear}
-                        withAsterisk
-  classNames={{
-    input: 'year-input',
-  }}
-
-                    />
-
-                    <Button
-                        color="red"
-                        disabled={!year}
-                        onClick={handleDelete}
-                    >
-                        Eliminar
-                    </Button>
-                </Group>
-
-            </Flex>
+            {loadingYears ? (
+                <Center h={100}><Loader /></Center>
+            ) : (
+                <Flex direction="column" gap="md">
+                    {error && (
+                        <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                            {error}
+                        </Alert>
+                    )}
+                    <Group gap="md" grow>
+                        <Select
+                            placeholder="Seleccione el año"
+                            data={yearOptions}
+                            value={selectedYearId}
+                            onChange={setSelectedYearId}
+                            withAsterisk
+                        />
+                        <Button
+                            color="red"
+                            disabled={!selectedYearId}
+                            loading={loading}
+                            onClick={handleDelete}
+                        >
+                            Eliminar
+                        </Button>
+                    </Group>
+                </Flex>
+            )}
         </Modal>
     );
 }
 
-export default CreateYearModal;
+export default DeleteYearModal;

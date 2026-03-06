@@ -1,10 +1,8 @@
-import { Table, Group, Flex, Avatar, Text, ActionIcon, Button } from '@mantine/core';
-import { elementsCourses } from './elementsCourses';
-import { elementsModules } from './elementsModules';
+import { Table, Group, Flex, Avatar, Text, ActionIcon, Button, Loader, Center } from '@mantine/core';
 import { IconAdjustments, IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
+import { elementsModules } from './elementsModules';
 
 import { ScheduleView } from '../../components/ScheduleModules/ScheduleViewSchool';
-
 
 //Modal
 import ModalEditSchool from './Modals/EditSchoolModal';
@@ -17,18 +15,20 @@ import DeleteYearModal from './Modals/DeleteYearModal';
 
 import { useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-
+import { useCourse } from '../../hooks/useCourse';
 
 function SchoolSettings() {
 
+    const { courses, loading, deleteCourse, refetch } = useCourse();
+
     const [modalEditSchoolOpened, setModalEditSchoolOpened] = useState(false);
     const [modalModifyCoursesOpened, setModalModifyCoursesOpened] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState<{ year: number; course: string } | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<{ id_course: number; name: string; id_year: number } | null>(null);
     const [modalCreateCourseOpened, setModalCreateCourseOpened] = useState(false);
     const [modalCreateModuleOpened, setModalCreateModuleOpened] = useState(false);
     const [selectedModuleId, setSelectedModuleId] = useState<string | undefined>(undefined);
     const [deleteCourseOpened, { open: openDeleteCourse, close: closeDeleteCourse }] = useDisclosure(false);
-    const [courseToDelete, setCourseToDelete] = useState<any | null>(null);
+    const [courseToDelete, setCourseToDelete] = useState<{ id_course: number; name: string } | null>(null);
 
     const [modalCreateYearOpened, setModalCreateYearOpened] = useState(false);
     const [modalDeleteYearOpened, setModalDeleteYearOpened] = useState(false);
@@ -37,13 +37,13 @@ function SchoolSettings() {
         nombre: 'Colegio San Martín',
         abreviacion: 'CSM',
         email: 'info@sanmartin.edu.ar',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Bitmap_Icon_Logo.png', // URL del logo
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Bitmap_Icon_Logo.png',
     };
 
-    const rowsCourses = elementsCourses.map((element, idx) => (
-        <Table.Tr key={idx}>
-            <Table.Td>{element.year}</Table.Td>
-            <Table.Td>{element.course}</Table.Td>
+    const rowsCourses = courses.map((element) => (
+        <Table.Tr key={element.id_course}>
+            <Table.Td>{element.id_year}</Table.Td>
+            <Table.Td>{element.name}</Table.Td>
             <Table.Td>
                 <Group gap={10}>
                     <ActionIcon
@@ -73,48 +73,33 @@ function SchoolSettings() {
         </Table.Tr>
     ));
 
-
     return (
         <div className='contenedor-tabla'>
 
             <DeleteYearModal
                 opened={modalDeleteYearOpened}
                 onClose={() => setModalDeleteYearOpened(false)}
-                onDelete={(year: string) => {
-                    console.log('Año eliminado:', year);
-                    setModalDeleteYearOpened(false);
-                }}
             />
-
 
             <CreateYearModal
                 opened={modalCreateYearOpened}
                 onClose={() => setModalCreateYearOpened(false)}
-                onCreate={(year) => {
-                    // Aquí va la lógica para crear un nuevo año
-                    console.log('Año creado:', year);
-                    setModalCreateYearOpened(false);
-                }}
             />
 
             <CreateModuleModal
                 opened={modalCreateModuleOpened}
                 close={() => {
                     setModalCreateModuleOpened(false);
-                    setTimeout(() => {
-                        setSelectedModuleId(undefined);
-                    }, 300); // milisegundos de delay
+                    setTimeout(() => setSelectedModuleId(undefined), 300);
                 }}
                 id={selectedModuleId}
             />
 
             <CreateCourseModal
                 opened={modalCreateCourseOpened}
-                onClose={() => setModalCreateCourseOpened(false)}
-                onCreate={(course) => {
-                    // Aquí va la lógica para crear un nuevo curso
-                    console.log('Curso creado:', course);
+                onClose={() => {
                     setModalCreateCourseOpened(false);
+                    refetch();
                 }}
             />
 
@@ -123,7 +108,6 @@ function SchoolSettings() {
                 close={() => setModalEditSchoolOpened(false)}
                 colegio={colegio}
                 onSave={(values) => {
-                    // Aquí puedes manejar la lógica de guardado
                     console.log('Guardar cambios:', values);
                     setModalEditSchoolOpened(false);
                 }}
@@ -131,29 +115,34 @@ function SchoolSettings() {
 
             <ModalModifyCourses
                 opened={modalModifyCoursesOpened}
-                close={() => setModalModifyCoursesOpened(false)}
-                onSave={() => setModalModifyCoursesOpened(false)}
-                //initialYear={selectedCourse?.year}
-                initialCourse={selectedCourse?.course}
+                close={() => {
+                    setModalModifyCoursesOpened(false);
+                    refetch();
+                }}
+                courseId={selectedCourse?.id_course}
+                initialCourse={selectedCourse?.name}
+                initialYearId={selectedCourse?.id_year}
             />
 
-            {/* Modal de confirmación de eliminación */}
             <DeleteCourseModal
                 opened={deleteCourseOpened}
                 close={closeDeleteCourse}
-                msg={(courseToDelete ? `${courseToDelete.year} ${courseToDelete.course} ` : " ")}
-                onDelete={() => {
-                    // Aquí va la lógica real de eliminación
+                msg={courseToDelete ? `${courseToDelete.name}` : ""}
+                onDelete={async () => {
+                    if (courseToDelete) {
+                        await deleteCourse(courseToDelete.id_course);
+                    }
                     closeDeleteCourse();
-                    setCourseToDelete(false);
+                    setCourseToDelete(null);
                 }}
             />
+
             <Group justify='space-between'>
                 <Group gap={25}>
                     <Avatar src={colegio.logo} size={64} radius="md" />
                     <Text size="xl" fw={700}>
                         {colegio.nombre} <Text span c="dimmed" size="md">({colegio.abreviacion})</Text>
-                        <Text size="sm" c="dimmed" >{colegio.email}</Text>
+                        <Text size="sm" c="dimmed">{colegio.email}</Text>
                     </Text>
                     <ActionIcon variant="filled" size="lg" aria-label="Settings" style={{ marginLeft: 25 }}
                         onClick={() => setModalEditSchoolOpened(true)}>
@@ -161,28 +150,15 @@ function SchoolSettings() {
                     </ActionIcon>
                 </Group>
                 <Group gap={15}>
-                    <Button
-                        onClick={() => setModalCreateYearOpened(true)}
-                    >
-                        Añadir año
-                    </Button>
-                    <Button
-                        color='red'
-                        onClick={() => setModalDeleteYearOpened(true)}
-                    >
-                        Eliminar año
-                    </Button>
+                    <Button onClick={() => setModalCreateYearOpened(true)}>Añadir año</Button>
+                    <Button color='red' onClick={() => setModalDeleteYearOpened(true)}>Eliminar año</Button>
                 </Group>
             </Group>
 
-
-            <Flex
-                wrap="nowrap"
-                style={{ marginTop: 25, width: '100%', gap: 25, overflow: 'hidden' }}
-            >
+            <Flex wrap="nowrap" style={{ marginTop: 25, width: '100%', gap: 25, overflow: 'hidden' }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <Group gap={50} className='subtitulos-configuracion'>
-                        <Text size="md" >Horarios del colegio</Text>
+                        <Text size="md">Horarios del colegio</Text>
                         <ActionIcon variant="filled" aria-label="Settings"
                             onClick={() => {
                                 setSelectedModuleId(undefined);
@@ -194,34 +170,37 @@ function SchoolSettings() {
                     <ScheduleView
                         modulos={elementsModules}
                         onModuleClick={(id: string) => {
-                            console.log("Módulo seleccionado:", id);
                             setSelectedModuleId(id);
                             setModalCreateModuleOpened(true);
                         }}
                     />
                 </div>
 
-
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Group gap={50} className='subtitulos-configuracion'>
-                        <Text size="md" >Cursos</Text>
+                        <Text size="md">Cursos</Text>
                         <ActionIcon variant="filled" aria-label="Settings"
                             onClick={() => setModalCreateCourseOpened(true)}>
                             <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.5} />
                         </ActionIcon>
                     </Group>
-                    <Table.ScrollContainer minWidth='250'>
-                        <Table withTableBorder withColumnBorders>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>Año</Table.Th>
-                                    <Table.Th>Division</Table.Th>
-                                    <Table.Th>Acciones</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>{rowsCourses}</Table.Tbody>
-                        </Table>
-                    </Table.ScrollContainer>
+
+                    {loading ? (
+                        <Center h={100}><Loader /></Center>
+                    ) : (
+                        <Table.ScrollContainer minWidth='250'>
+                            <Table withTableBorder withColumnBorders>
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th>Año</Table.Th>
+                                        <Table.Th>División</Table.Th>
+                                        <Table.Th>Acciones</Table.Th>
+                                    </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>{rowsCourses}</Table.Tbody>
+                            </Table>
+                        </Table.ScrollContainer>
+                    )}
                 </div>
             </Flex>
         </div>

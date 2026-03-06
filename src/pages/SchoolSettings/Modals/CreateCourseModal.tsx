@@ -1,36 +1,40 @@
-import { Modal, Button, Flex, Select, TextInput, Group } from '@mantine/core';
+import { Modal, Button, Flex, Select, TextInput, Group, Alert } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { useCourse } from '../../../hooks/useCourse';
+import { useYear } from '../../../hooks/useYear';
 
-function CreateCourseModal({ opened, onClose, onCreate }: {
+function CreateCourseModal({ opened, onClose }: {
     opened: boolean;
     onClose: () => void;
-    onCreate: (course: { year: string; course: string }) => void;
 }) {
-    const [year, setYear] = useState<string | null>(null);
+    const { createCourse, error } = useCourse();
+    const { years } = useYear();
+    const [yearId, setYearId] = useState<string | null>(null);
     const [division, setDivision] = useState<string>('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!opened) {
-            setYear(null);
+            setYearId(null);
             setDivision('');
         }
     }, [opened]);
 
-    const yearOptions = [
-        { value: '1', label: '1' },
-        { value: '2', label: '2' },
-        { value: '3', label: '3' },
-        { value: '4', label: '4' },
-        { value: '5', label: '5' },
-        { value: '6', label: '6' },
-        { value: '7', label: '7' },
-    ];
+    const yearOptions = years.map(y => ({
+        value: String(y.id_year),
+        label: String(y.name),
+    }));
 
-    const handleCreate = () => {
-        if (year && division) {
-            onCreate({ year, course: division });
-            onClose();
-        }
+    const handleCreate = async () => {
+        if (!yearId || !division) return;
+        setLoading(true);
+        const ok = await createCourse({
+            name: division,
+            id_year: Number(yearId),
+        });
+        setLoading(false);
+        if (ok) onClose();
     };
 
     return (
@@ -39,19 +43,21 @@ function CreateCourseModal({ opened, onClose, onCreate }: {
             onClose={onClose}
             title="Crear curso"
             yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
             <Flex direction="column" gap="md">
+                {error && (
+                    <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                        {error}
+                    </Alert>
+                )}
                 <Group gap="md" grow>
                     <Select
                         placeholder="Año"
                         data={yearOptions}
                         searchable
-                        value={year}
-                        onChange={setYear}
+                        value={yearId}
+                        onChange={setYearId}
                         withAsterisk
                     />
                     <TextInput
@@ -63,7 +69,8 @@ function CreateCourseModal({ opened, onClose, onCreate }: {
                 </Group>
                 <Button
                     color="blue"
-                    disabled={!year || !division}
+                    disabled={!yearId || !division}
+                    loading={loading}
                     onClick={handleCreate}
                 >
                     Crear

@@ -1,10 +1,8 @@
-// utils/subjectTableUtils.ts
-import { listSubject } from '../services/subjectServices';
+import { type Subject } from '../services/subjectService';
 import { normalizeText } from './utils';
 
-
 export function filterSubjects(
-  data: typeof listSubject,
+  data: Subject[],
   filters: {
     subjectFilter: string;
     teacherFilter: string;
@@ -22,7 +20,7 @@ export function filterSubjects(
 }
 
 export function sortSubjects(
-  data: typeof listSubject,
+  data: Subject[],
   sortConfig: { key: 'subject' | 'course' | null; order: 'asc' | 'desc' | null }
 ) {
   if (!sortConfig.key || !sortConfig.order) return data;
@@ -37,7 +35,7 @@ export function sortSubjects(
   });
 }
 
-export function exportSubjectsToCSV(data: typeof listSubject) {
+export function exportSubjectsToCSV(data: Subject[]) {
   const csvData = [
     ['Materia', 'Curso', 'Profesor', 'Horas/Semana', 'Abreviatura', 'Color'],
     ...data.map(item => [

@@ -21,6 +21,7 @@ export const loginService = async ({
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      "ngrok-skip-browser-warning": "true", //SACAR CUANDO SE VAYA A PRODUCCIÓN
     },
     body: body.toString(),
   });

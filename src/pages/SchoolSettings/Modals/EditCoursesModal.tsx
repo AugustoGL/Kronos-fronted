@@ -1,38 +1,43 @@
-import { Modal, Button, Flex, Select, TextInput, Group } from '@mantine/core';
+import { Modal, Button, Flex, Select, TextInput, Group, Alert } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { useCourse } from '../../../hooks/useCourse';
+import { useYear } from '../../../hooks/useYear';
 
-function ModalModifyCourses({ opened, close, onSave, initialYear, initialCourse }: {
+function ModalModifyCourses({ opened, close, courseId, initialCourse, initialYearId }: {
     opened: boolean;
     close: () => void;
-    onSave: (course: { year: string; course: string }) => void;
-    initialYear?: string;
+    courseId?: number | null;
     initialCourse?: string;
+    initialYearId?: number | null;
 }) {
-    const [year, setYear] = useState<string | null>(initialYear ?? null);
+    const { updateCourse, error } = useCourse();
+    const { years } = useYear();
+    const [yearId, setYearId] = useState<string | null>(null);
     const [division, setDivision] = useState<string>(initialCourse ?? '');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (opened) {
-            setYear(initialYear ?? null);
             setDivision(initialCourse ?? '');
+            setYearId(initialYearId ? String(initialYearId) : null);
         }
-    }, [opened, initialYear, initialCourse]);
+    }, [opened, initialCourse, initialYearId]);
 
-    const yearOptions = [
-        { value: '1', label: '1' },
-        { value: '2', label: '2' },
-        { value: '3', label: '3' },
-        { value: '4', label: '4' },
-        { value: '5', label: '5' },
-        { value: '6', label: '6' },
-        { value: '7', label: '7' },
-    ];
+    const yearOptions = years.map(y => ({
+        value: String(y.id_year),
+        label: String(y.name),
+    }));
 
-    const handleSave = () => {
-        if (year && division) {
-            onSave({ year, course: division });
-            close();
-        }
+    const handleSave = async () => {
+        if (!courseId || !yearId || !division) return;
+        setLoading(true);
+        const ok = await updateCourse(courseId, {
+            name: division,
+            id_year: Number(yearId),
+        });
+        setLoading(false);
+        if (ok) close();
     };
 
     return (
@@ -41,19 +46,21 @@ function ModalModifyCourses({ opened, close, onSave, initialYear, initialCourse 
             onClose={close}
             title="Editar curso"
             yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
             <Flex direction="column" gap="md">
+                {error && (
+                    <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                        {error}
+                    </Alert>
+                )}
                 <Group gap="md" grow>
                     <Select
                         placeholder="Año"
                         data={yearOptions}
                         searchable
-                        value={year}
-                        onChange={setYear}
+                        value={yearId}
+                        onChange={setYearId}
                         withAsterisk
                     />
                     <TextInput
@@ -65,7 +72,8 @@ function ModalModifyCourses({ opened, close, onSave, initialYear, initialCourse 
                 </Group>
                 <Button
                     color="blue"
-                    disabled={!year || !division}
+                    disabled={!yearId || !division}
+                    loading={loading}
                     onClick={handleSave}
                 >
                     Guardar

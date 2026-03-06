@@ -109,7 +109,8 @@ function SubjectsPage() {
             onSuccess={refetch}   // 👈 esto recarga la tabla al asignar
             />
             <DeleteSubjectModal
-                opened={deleteOpened}
+           
+           opened={deleteOpened}
                 close={closeDelete}
                 msg={subjectToDelete ? `${subjectToDelete.subject} de ${subjectToDelete.course}` : ""}
                 onDelete={() => {
