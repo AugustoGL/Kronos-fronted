@@ -1,6 +1,5 @@
 import { Table, Group, Flex, Avatar, Text, ActionIcon, Button, Loader, Center } from '@mantine/core';
 import { IconAdjustments, IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
-import { elementsModules } from './elementsModules';
 
 import { ScheduleView } from '../../components/ScheduleModules/ScheduleViewSchool';
 
@@ -9,17 +8,19 @@ import ModalEditSchool from './Modals/EditSchoolModal';
 import ModalModifyCourses from './Modals/EditCoursesModal';
 import DeleteCourseModal from '../../components/Modals/DeleteModal';
 import CreateCourseModal from './Modals/CreateCourseModal';
-import CreateModuleModal from './Modals/CEModuleModal';
+import CreateEditModuleModal from './Modals/CEModuleModal';
 import CreateYearModal from './Modals/CreateYearModal';
 import DeleteYearModal from './Modals/DeleteYearModal';
 
 import { useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { useCourse } from '../../hooks/useCourse';
+import { useModules } from '../../hooks/useModules';
 
 function SchoolSettings() {
 
     const { courses, loading, deleteCourse, refetch } = useCourse();
+    const { modulos, refetch: refetchModules } = useModules();
 
     const [modalEditSchoolOpened, setModalEditSchoolOpened] = useState(false);
     const [modalModifyCoursesOpened, setModalModifyCoursesOpened] = useState(false);
@@ -86,11 +87,12 @@ function SchoolSettings() {
                 onClose={() => setModalCreateYearOpened(false)}
             />
 
-            <CreateModuleModal
+            <CreateEditModuleModal
                 opened={modalCreateModuleOpened}
                 close={() => {
                     setModalCreateModuleOpened(false);
                     setTimeout(() => setSelectedModuleId(undefined), 300);
+                    refetchModules();
                 }}
                 id={selectedModuleId}
             />
@@ -168,7 +170,7 @@ function SchoolSettings() {
                         </ActionIcon>
                     </Group>
                     <ScheduleView
-                        modulos={elementsModules}
+                        modulos={modulos}
                         onModuleClick={(id: string) => {
                             setSelectedModuleId(id);
                             setModalCreateModuleOpened(true);

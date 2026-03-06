@@ -1,24 +1,29 @@
-import { Modal, Button, Flex, Select, Group, Text } from '@mantine/core';
+import { Modal, Button, Flex, Select, Group, Text, Alert, TextInput } from '@mantine/core';
 import { TimePicker } from '@mantine/dates';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
-import { useEffect } from 'react';
-import { elementsModules } from '../elementsModules';
+import { useEffect, useState } from 'react';
+import { useModules } from '../../../hooks/useModules';
 
 function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () => void; id?: string }) {
+    const { modulos, createModule, updateModule, deleteModule, error } = useModules();
+    const [loading, setLoading] = useState(false);
+
     const form = useForm({
         initialValues: {
             dia: '',
             horaInicio: '',
             horaFin: '',
+            name: '',
         },
         validate: {
             dia: (value) => !value ? 'Debe seleccionar un día' : null,
+            name: (value) => !value ? 'Debe ingresar un número' : null,
             horaInicio: (value) => !value ? 'Debe ingresar una hora de inicio' : null,
             horaFin: (value, values) => {
                 if (!value) return 'Debe ingresar una hora de fin';
-                if (values.horaInicio && value <= values.horaInicio) {
+                if (values.horaInicio && value <= values.horaInicio)
                     return 'La hora de finalización debe ser posterior a la hora de inicio';
-                }
                 return null;
             },
         }
@@ -29,17 +34,16 @@ function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () =
             form.reset();
             form.clearErrors();
         } else if (id) {
-            // Si hay id, cargar los datos del módulo
-            const modulo = elementsModules.find(m => m.id === id);
+            const modulo = modulos.find(m => m.id === id);
             if (modulo) {
                 form.setValues({
                     dia: modulo.dia,
                     horaInicio: modulo.horaInicio,
                     horaFin: modulo.horaFin,
+                    name: modulo.name,
                 });
             }
         } else {
-            // Si no hay id, resetear a valores vacíos
             form.reset();
         }
     }, [opened, id]);
@@ -52,36 +56,66 @@ function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () =
         { value: 'viernes', label: 'Viernes' },
     ];
 
+    const handleSubmit = async (values: typeof form.values) => {
+        setLoading(true);
+        const data = { start_time: values.horaInicio, end_time: values.horaFin, day: values.dia, name: values.name };
+        const ok = id ? await updateModule(id, data) : await createModule(data);
+        setLoading(false);
+        if (ok) {
+            form.reset();
+            form.clearErrors();
+            close();
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+        setLoading(true);
+        const ok = await deleteModule(id);
+        setLoading(false);
+        if (ok) {
+            form.reset();
+            form.clearErrors();
+            close();
+        }
+    };
+
     return (
         <Modal
             opened={opened}
             onClose={close}
             title={id ? "Editar módulo" : "Crear nuevo módulo"}
             yOffset='15vh'
-            overlayProps={{
-                backgroundOpacity: 0.55,
-                blur: 3,
-            }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
-            <form onSubmit={form.onSubmit((values) => {
-                console.log(values);
-                form.reset();
-                form.clearErrors();
-                close();
-            })}>
+            <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Flex direction="column" gap="md">
-                    <Select
-                        placeholder="Selecciona el día"
-                        data={diasOptions}
-                        value={form.values.dia}
-                        onChange={(value) => form.setFieldValue('dia', value || '')}
-                        error={form.errors.dia}
-                        searchable
-                        withAsterisk
-                    />
+                    {error && (
+                        <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+                            {error}
+                        </Alert>
+                    )}
+                    <Group gap="md" grow>
+                        <Select
+                            placeholder="Selecciona el día"
+                            data={diasOptions}
+                            value={form.values.dia}
+                            onChange={(value) => form.setFieldValue('dia', value || '')}
+                            error={form.errors.dia}
+                            searchable
+                            withAsterisk
+                        />
+                        <TextInput
+                            placeholder="Número de módulo"
+                            value={form.values.name}
+                            onChange={(e) => form.setFieldValue('name', e.currentTarget.value)}
+                            error={form.errors.name}
+                            withAsterisk
+                        />
+                    </Group>
                     <div>
                         <Text size="sm" fw={500} mb={5}>
-                            Horario de inicio y fin   <Text span c="red">*</Text>
+                            Horario de inicio y fin <Text span c="red">*</Text>
                         </Text>
                         <Group gap="xs" align="flex-end">
                             <TimePicker
@@ -92,8 +126,6 @@ function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () =
                                 style={{ flex: 1 }}
                                 withDropdown
                             />
-                            <Text size="lg" fw={600} style={{ marginBottom: 4 }}>
-                            </Text>
                             <TimePicker
                                 format="24h"
                                 value={form.values.horaFin}
@@ -104,34 +136,24 @@ function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () =
                             />
                         </Group>
                     </div>
+
                     {id ? (
                         <Group gap="md" mt="md">
-                            <Button
-                                type="submit"
-                                style={{ flex: 1 }}
-                            >
+                            <Button type="submit" loading={loading} style={{ flex: 1 }}>
                                 Guardar cambios
                             </Button>
                             <Button
                                 color="red"
                                 variant="outline"
-                                onClick={(e) => {
-                                    close();
-                                    e.preventDefault();
-                                    console.log("Eliminar módulo:", id);
-                                    form.reset();
-                                    form.clearErrors();
-                                }}
+                                loading={loading}
+                                onClick={handleDelete}
                                 style={{ flex: 1 }}
                             >
                                 Eliminar
                             </Button>
                         </Group>
                     ) : (
-                        <Button
-                            type="submit"
-                            style={{ marginTop: '15px' }}
-                        >
+                        <Button type="submit" loading={loading} style={{ marginTop: '15px' }}>
                             Crear módulo
                         </Button>
                     )}
@@ -142,4 +164,3 @@ function CreateModuleModal({ opened, close, id }: { opened: boolean; close: () =
 }
 
 export default CreateModuleModal;
-

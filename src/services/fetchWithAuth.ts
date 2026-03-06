@@ -22,7 +22,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  window.location.href = "/login";
+  window.location.href = "/";
 };
 
 export const fetchWithAuth = async (

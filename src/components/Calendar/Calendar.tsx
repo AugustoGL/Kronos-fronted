@@ -14,7 +14,6 @@ export function CursoModuloGrid({
 
   // Generar array de números de módulo
   const numerosModulo = Array.from({ length: modulos }, (_, i) => i + 1);
-  console.log("Putooooo");
 
   return (
     <div>
