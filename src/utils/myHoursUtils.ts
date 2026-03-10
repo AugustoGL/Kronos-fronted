@@ -1,5 +1,6 @@
 import { type School } from '../services/mySchoolsServices';
 
+
 export interface Module {
   id_colegio: number;
   [key: string]: any; // Ajusta si tienes tipos más estrictos

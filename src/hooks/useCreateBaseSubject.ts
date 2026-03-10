@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { createBaseSubjectService, type CreateBaseSubjectData } from "../services/baseSubjectService";
-
+import { getIdSchool } from "../utils/schoolStorage";
 // TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-const ID_SCHOOL_PLACEHOLDER = 1;
 
 interface UseCreateBaseSubjectReturn {
   createBaseSubject: (data: CreateBaseSubjectData) => Promise<boolean>;
@@ -18,7 +17,7 @@ export const useCreateBaseSubject = (): UseCreateBaseSubjectReturn => {
     setLoading(true);
     setError(null);
     try {
-      await createBaseSubjectService(data, ID_SCHOOL_PLACEHOLDER);
+      await createBaseSubjectService(data, getIdSchool());
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");

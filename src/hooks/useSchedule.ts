@@ -1,40 +1,36 @@
 import { useEffect, useState } from "react";
-import { getStaffService, type Staff } from "../services/staffService";
-import { getIdSchool } from "../utils/schoolStorage";
+import { getScheduleService, type ScheduleResponse } from "../services/scheduleService";
 
-// TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-
-interface UseStaffReturn {
-  staff: Staff[];
+interface UseScheduleReturn {
+  schedule: ScheduleResponse | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
 }
 
-export const useStaff = (): UseStaffReturn => {
-  const [staff, setStaff] = useState<Staff[]>([]);
+export const useSchedule = (): UseScheduleReturn => {
+  const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trigger, setTrigger] = useState(0);
 
   useEffect(() => {
-    const fetchStaff = async () => {
+    const fetch = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getStaffService(getIdSchool());
-        setStaff(data);
+        const data = await getScheduleService();
+        setSchedule(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchStaff();
+    fetch();
   }, [trigger]);
 
   const refetch = () => setTrigger((t) => t + 1);
 
-  return { staff, loading, error, refetch };
+  return { schedule, loading, error, refetch };
 };

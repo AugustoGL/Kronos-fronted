@@ -1,7 +1,7 @@
 import { fetchWithAuth } from "./fetchWithAuth";
+import { getIdSchool } from ".././utils/schoolStorage";
 
 // TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-const ID_SCHOOL_PLACEHOLDER = 1;
 
 export interface BaseSubject {
   id_base_subject: number;
@@ -15,6 +15,7 @@ export interface Course {
   name: string;
   description: string;
   id_year: number;
+  full_name: string;
 }
 
 export interface Professor {
@@ -24,7 +25,7 @@ export interface Professor {
 
 export const getBaseSubjectsService = async (): Promise<BaseSubject[]> => {
   const response = await fetchWithAuth(
-    `/myschool/base-subject/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/base-subject/?id_school=${getIdSchool()}`,
     { method: "GET" }
   );
   if (!response.ok) throw new Error("Error al obtener las materias base");
@@ -33,7 +34,7 @@ export const getBaseSubjectsService = async (): Promise<BaseSubject[]> => {
 
 export const getCoursesService = async (): Promise<Course[]> => {
   const response = await fetchWithAuth(
-    `/myschool/course/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/course/?id_school=${getIdSchool()}`,
     { method: "GET" }
   );
   if (!response.ok) throw new Error("Error al obtener los cursos");
@@ -42,7 +43,7 @@ export const getCoursesService = async (): Promise<Course[]> => {
 
 export const getProfessorsService = async (): Promise<Professor[]> => {
   const response = await fetchWithAuth(
-    `/myschool/staff/profesors?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/staff/profesors?id_school=${getIdSchool()}`,
     { method: "GET" }
   );
   if (!response.ok) throw new Error("Error al obtener los profesores");
@@ -59,7 +60,7 @@ export interface CreateSubjectData {
 
 export const createSubjectService = async (data: CreateSubjectData): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/subject/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/subject/?id_school=${getIdSchool()}`,
     {
       method: "POST",
       body: JSON.stringify(data),

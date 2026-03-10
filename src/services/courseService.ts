@@ -1,12 +1,13 @@
+import { getIdSchool } from ".././utils/schoolStorage";
 import { fetchWithAuth } from "./fetchWithAuth";
 
-const ID_SCHOOL_PLACEHOLDER = 1;
 
 export interface Course {
   id_course: number;
   name: string;
   description: string;
   id_year: number;
+  full_name: string;
 }
 
 export interface CourseData {
@@ -17,7 +18,7 @@ export interface CourseData {
 
 export const getCoursesService = async (): Promise<Course[]> => {
   const response = await fetchWithAuth(
-    `/myschool/course/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/course/?id_school=${getIdSchool()}`,
     { method: "GET" }
   );
   if (!response.ok) {
@@ -29,10 +30,10 @@ export const getCoursesService = async (): Promise<Course[]> => {
 
 export const createCourseService = async (data: CourseData): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/course/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/course/?id_school=${getIdSchool()}`,
     {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, description: data.description ?? "" }),
     }
   );
   if (!response.ok) {
@@ -43,7 +44,7 @@ export const createCourseService = async (data: CourseData): Promise<void> => {
 
 export const updateCourseService = async (course_id: number, data: CourseData): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/course/${course_id}?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/course/${course_id}?id_school=${getIdSchool()}`,
     {
       method: "PUT",
       body: JSON.stringify(data),
@@ -57,7 +58,7 @@ export const updateCourseService = async (course_id: number, data: CourseData): 
 
 export const deleteCourseService = async (course_id: number): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/course/${course_id}?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/course/${course_id}?id_school=${getIdSchool()}`,
     { method: "DELETE" }
   );
   if (!response.ok) {

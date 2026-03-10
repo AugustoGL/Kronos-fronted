@@ -5,7 +5,7 @@ import {
   updateModuleService,
   deleteModuleService,
   type Modulo,
-} from "../services/moduleServices";
+} from "../services/moduleService";
 
 interface UseModulesReturn {
   modulos: Modulo[];

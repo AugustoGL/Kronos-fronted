@@ -1,6 +1,5 @@
 import { fetchWithAuth } from "./fetchWithAuth";
-
-const ID_SCHOOL_PLACEHOLDER = 1;
+import { getIdSchool } from "../utils/schoolStorage";
 
 export interface ModuleAPI {
   id_module: number;
@@ -47,7 +46,7 @@ export const mapModule = (m: ModuleAPI): Modulo => ({
 
 export const getModulesService = async (): Promise<Modulo[]> => {
   const response = await fetchWithAuth(
-    `/myschool/module/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/module/?id_school=${getIdSchool()}`,
     { method: "GET" }
   );
   if (!response.ok) {
@@ -65,14 +64,14 @@ export const createModuleService = async (data: {
   name?: string;
 }): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/module/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/module/?id_school=${getIdSchool()}`,
     {
       method: "POST",
       body: JSON.stringify({
         start_time: `${data.start_time}:00`,
         end_time: `${data.end_time}:00`,
         day: DAY_MAP_REVERSE[data.day] ?? data.day.toUpperCase(),
-        id_school: ID_SCHOOL_PLACEHOLDER,
+        id_school: getIdSchool(),
         name: data.name ?? `${data.start_time} - ${data.end_time}`,
       }),
     }
@@ -90,7 +89,7 @@ export const updateModuleService = async (module_id: string, data: {
   name?: string;
 }): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/module/${module_id}?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/module/${module_id}?id_school=${getIdSchool()}`,
     {
       method: "PUT",
       body: JSON.stringify({
@@ -109,7 +108,7 @@ export const updateModuleService = async (module_id: string, data: {
 
 export const deleteModuleService = async (module_id: string): Promise<void> => {
   const response = await fetchWithAuth(
-    `/myschool/module/${module_id}?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/module/${module_id}?id_school=${getIdSchool()}`,
     { method: "DELETE" }
   );
   if (!response.ok) {

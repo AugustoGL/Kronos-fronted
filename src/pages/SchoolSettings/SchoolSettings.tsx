@@ -43,8 +43,7 @@ function SchoolSettings() {
 
     const rowsCourses = courses.map((element) => (
         <Table.Tr key={element.id_course}>
-            <Table.Td>{element.id_year}</Table.Td>
-            <Table.Td>{element.name}</Table.Td>
+            <Table.Td>{element.full_name}</Table.Td>
             <Table.Td>
                 <Group gap={10}>
                     <ActionIcon
@@ -194,9 +193,8 @@ function SchoolSettings() {
                             <Table withTableBorder withColumnBorders>
                                 <Table.Thead>
                                     <Table.Tr>
-                                        <Table.Th>Año</Table.Th>
                                         <Table.Th>División</Table.Th>
-                                        <Table.Th>Acciones</Table.Th>
+                                        <Table.Th>Curso</Table.Th>
                                     </Table.Tr>
                                 </Table.Thead>
                                 <Table.Tbody>{rowsCourses}</Table.Tbody>

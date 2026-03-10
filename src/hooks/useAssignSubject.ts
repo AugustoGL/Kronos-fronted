@@ -52,7 +52,7 @@ export const useAssignSubject = (): UseAssignSubjectReturn => {
       setCourseOptions(
         courses.map((c: Course) => ({
           value: String(c.id_course),
-          label: c.name,
+          label: c.full_name,
         }))
       );
       setProfessorOptions(

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSubjectsService, type Subject } from "../services/subjectService";
-
+import { getIdSchool } from "../utils/schoolStorage";
 // TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-const ID_SCHOOL_PLACEHOLDER = 1;
 
 interface UseSubjectsReturn {
   subjects: Subject[];
@@ -22,7 +21,7 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getSubjectsService(ID_SCHOOL_PLACEHOLDER);
+        const data = await getSubjectsService(getIdSchool());
         setSubjects(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
