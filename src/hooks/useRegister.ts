@@ -3,7 +3,7 @@ import {
   registerService,
   verifyEmailService,
   resendVerificationService,
-} from "../services/userService";
+} from "./userService";
 
 interface UseRegisterReturn {
   register: (data: {

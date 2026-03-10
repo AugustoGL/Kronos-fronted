@@ -17,7 +17,7 @@ export const useCreateBaseSubject = (): UseCreateBaseSubjectReturn => {
     setLoading(true);
     setError(null);
     try {
-      await createBaseSubjectService(data, getIdSchool());
+      await createBaseSubjectService(data); 
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");

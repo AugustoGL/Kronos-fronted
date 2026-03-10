@@ -1,4 +1,4 @@
-import { Modal, Button, Flex, Select, NumberInput, Alert, Loader, Center, ColorInput } from '@mantine/core';
+import { Modal, Button, Flex, Select, NumberInput, Alert, Loader, Center } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useEffect } from 'react';
@@ -23,7 +23,6 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
     error,
   } = useAssignSubject();
 
-  // Recarga las opciones cada vez que el modal se abre
   useEffect(() => {
     if (opened) loadOptions();
   }, [opened]);
@@ -35,14 +34,12 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
       course: '',
       teacher: '',
       hours: undefined as number | undefined,
-      color: '#FFFFFF',
     },
     validate: {
       subject: (value) => !value ? 'Debe seleccionar una materia' : null,
       course: (value) => !value ? 'Debe seleccionar un curso' : null,
       teacher: (value) => !value ? 'Debe seleccionar un profesor' : null,
       hours: (value) => !value || value <= 0 ? 'Debe ingresar un número de horas válido' : null,
-      color: (value) => !value ? 'Debe seleccionar un color' : null,
     }
   });
 
@@ -53,7 +50,6 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
 
   const handleSubmit = async (values: typeof form.values) => {
     const ok = await createSubject({
-      color: values.color,
       week_hours: values.hours!,
       id_staff: Number(values.teacher),
       id_course: Number(values.course),
@@ -73,15 +69,10 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
       onClose={handleClose}
       title={id ? "Editar materia" : "Asignar materia"}
       yOffset='15vh'
-      overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
-      }}
+      overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
     >
       {loadingOptions ? (
-        <Center h={200}>
-          <Loader />
-        </Center>
+        <Center h={200}><Loader /></Center>
       ) : (
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Flex direction="column" gap="md">
@@ -90,7 +81,6 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
                 {error}
               </Alert>
             )}
-
             <Select
               placeholder="Selecciona la materia"
               data={subjectOptions}
@@ -119,13 +109,6 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
               key={form.key('hours')}
               {...form.getInputProps('hours')}
             />
-            <ColorInput
-              placeholder="Color de la materia"
-              key={form.key('color')}
-              {...form.getInputProps('color')}
-              swatches={['#2e2e2e', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14']}
-            />
-
             <Button type="submit" loading={loading} style={{ marginTop: '15px' }}>
               {id ? "Guardar cambios" : "Asignar materia"}
             </Button>

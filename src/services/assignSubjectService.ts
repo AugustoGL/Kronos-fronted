@@ -1,5 +1,5 @@
+import { getIdSchool } from "../utils/schoolStorage";
 import { fetchWithAuth } from "./fetchWithAuth";
-import { getIdSchool } from ".././utils/schoolStorage";
 
 // TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
 
@@ -51,7 +51,6 @@ export const getProfessorsService = async (): Promise<Professor[]> => {
 };
 
 export interface CreateSubjectData {
-  color: string;
   week_hours: number;
   id_staff: number | null;
   id_course: number;

@@ -1,4 +1,5 @@
-import { Modal, Button, Flex, TextInput, Alert, Textarea } from '@mantine/core';
+import { Modal, Button, Flex, TextInput, Textarea, Alert } from '@mantine/core';
+import { ColorInput } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useCreateBaseSubject } from '../../../hooks/useCreateBaseSubject';
@@ -6,30 +7,37 @@ import { useCreateBaseSubject } from '../../../hooks/useCreateBaseSubject';
 interface CreateSubjectModalProps {
   opened: boolean;
   close: () => void;
-  onSuccess?: () => void; // para refetch de la tabla
+  onSuccess?: () => void;
 }
 
 function CreateSubjectModal({ opened, close, onSuccess }: CreateSubjectModalProps) {
   const { createBaseSubject, loading, error } = useCreateBaseSubject();
 
   const form = useForm({
-    mode: 'uncontrolled',
     initialValues: {
-      subject: '',
+      name: '',
       abbreviation: '',
       description: '',
+      color: '#FFFFFF',
     },
     validate: {
-      subject: (value) => value.trim().length === 0 ? 'El nombre de la materia es requerido' : null,
-      abbreviation: (value) => value.trim().length === 0 ? 'La abreviación es requerida' : null,
+      name: (value) => !value ? 'El nombre es requerido' : null,
+      abbreviation: (value) => !value ? 'La abreviación es requerida' : null,
+      color: (value) => !value ? 'El color es requerido' : null,
     }
   });
 
+  const handleClose = () => {
+    form.reset();
+    close();
+  };
+
   const handleSubmit = async (values: typeof form.values) => {
     const ok = await createBaseSubject({
-      name: values.subject,
+      name: values.name,
       abbreviation: values.abbreviation,
       description: values.description || null,
+      color: values.color,
     });
 
     if (ok) {
@@ -42,13 +50,10 @@ function CreateSubjectModal({ opened, close, onSuccess }: CreateSubjectModalProp
   return (
     <Modal
       opened={opened}
-      onClose={close}
-      title="Crear nueva materia"
+      onClose={handleClose}
+      title="Crear materia base"
       yOffset='15vh'
-      overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
-      }}
+      overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Flex direction="column" gap="md">
@@ -57,28 +62,27 @@ function CreateSubjectModal({ opened, close, onSuccess }: CreateSubjectModalProp
               {error}
             </Alert>
           )}
-
           <TextInput
             placeholder="Nombre de la materia"
-            key={form.key('subject')}
-            {...form.getInputProps('subject')}
+            withAsterisk
+            {...form.getInputProps('name')}
           />
           <TextInput
-            placeholder="Abreviación de la materia"
-            maxLength={5}
-            key={form.key('abbreviation')}
+            placeholder="Abreviación (ej: MAT, ING)"
+            withAsterisk
             {...form.getInputProps('abbreviation')}
           />
           <Textarea
             placeholder="Descripción (opcional)"
-            key={form.key('description')}
             {...form.getInputProps('description')}
           />
-          <Button
-            type="submit"
-            loading={loading}
-            style={{ marginTop: '15px' }}
-          >
+            <ColorInput
+              placeholder="Color de la materia"
+              key={form.key('color')}
+              {...form.getInputProps('color')}
+              swatches={['#2e2e2e', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14']}
+            />
+          <Button type="submit" loading={loading} style={{ marginTop: '15px' }}>
             Crear materia
           </Button>
         </Flex>
