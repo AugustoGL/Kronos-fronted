@@ -3,7 +3,6 @@ import { IconAdjustments, IconEdit, IconTrash, IconPlus } from '@tabler/icons-re
 
 import { ScheduleView } from '../../components/ScheduleModules/ScheduleViewSchool';
 
-//Modal
 import ModalEditSchool from './Modals/EditSchoolModal';
 import ModalModifyCourses from './Modals/EditCoursesModal';
 import DeleteCourseModal from '../../components/Modals/DeleteModal';
@@ -30,7 +29,6 @@ function SchoolSettings() {
     const [selectedModuleId, setSelectedModuleId] = useState<string | undefined>(undefined);
     const [deleteCourseOpened, { open: openDeleteCourse, close: closeDeleteCourse }] = useDisclosure(false);
     const [courseToDelete, setCourseToDelete] = useState<{ id_course: number; name: string } | null>(null);
-
     const [modalCreateYearOpened, setModalCreateYearOpened] = useState(false);
     const [modalDeleteYearOpened, setModalDeleteYearOpened] = useState(false);
 
@@ -62,7 +60,7 @@ function SchoolSettings() {
                         color="red"
                         aria-label="Eliminar curso"
                         onClick={() => {
-                            setCourseToDelete(element);
+                            setCourseToDelete(element.full_name ? { id_course: element.id_course, name: element.full_name } : null);
                             openDeleteCourse();
                         }}
                     >
@@ -76,74 +74,89 @@ function SchoolSettings() {
     return (
         <div className='contenedor-tabla'>
 
-            <DeleteYearModal
-                opened={modalDeleteYearOpened}
-                onClose={() => setModalDeleteYearOpened(false)}
-            />
+            {/* Modales lazy — solo se renderizan cuando se abren */}
+            {modalDeleteYearOpened && (
+                <DeleteYearModal
+                    opened={modalDeleteYearOpened}
+                    onClose={() => setModalDeleteYearOpened(false)}
+                />
+            )}
 
-            <CreateYearModal
-                opened={modalCreateYearOpened}
-                onClose={() => setModalCreateYearOpened(false)}
-            />
+            {modalCreateYearOpened && (
+                <CreateYearModal
+                    opened={modalCreateYearOpened}
+                    onClose={() => setModalCreateYearOpened(false)}
+                />
+            )}
 
-            <CreateEditModuleModal
-                opened={modalCreateModuleOpened}
-                close={() => {
-                    setModalCreateModuleOpened(false);
-                    setTimeout(() => setSelectedModuleId(undefined), 300);
-                    refetchModules();
-                }}
-                id={selectedModuleId}
-            />
+            {modalCreateModuleOpened && (
+                <CreateEditModuleModal
+                    opened={modalCreateModuleOpened}
+                    close={() => {
+                        setModalCreateModuleOpened(false);
+                        setTimeout(() => setSelectedModuleId(undefined), 300);
+                        refetchModules();
+                    }}
+                    id={selectedModuleId}
+                />
+            )}
 
-            <CreateCourseModal
-                opened={modalCreateCourseOpened}
-                onClose={() => {
-                    setModalCreateCourseOpened(false);
-                    refetch();
-                }}
-            />
+            {modalCreateCourseOpened && (
+                <CreateCourseModal
+                    opened={modalCreateCourseOpened}
+                    onClose={() => {
+                        setModalCreateCourseOpened(false);
+                        refetch();
+                    }}
+                />
+            )}
 
-            <ModalEditSchool
-                opened={modalEditSchoolOpened}
-                close={() => setModalEditSchoolOpened(false)}
-                colegio={colegio}
-                onSave={(values) => {
-                    console.log('Guardar cambios:', values);
-                    setModalEditSchoolOpened(false);
-                }}
-            />
+            {modalEditSchoolOpened && (
+                <ModalEditSchool
+                    opened={modalEditSchoolOpened}
+                    close={() => setModalEditSchoolOpened(false)}
+                    colegio={colegio}
+                    onSave={(values) => {
+                        console.log('Guardar cambios:', values);
+                        setModalEditSchoolOpened(false);
+                    }}
+                />
+            )}
 
-            <ModalModifyCourses
-                opened={modalModifyCoursesOpened}
-                close={() => {
-                    setModalModifyCoursesOpened(false);
-                    refetch();
-                }}
-                courseId={selectedCourse?.id_course}
-                initialCourse={selectedCourse?.name}
-                initialYearId={selectedCourse?.id_year}
-            />
+            {modalModifyCoursesOpened && (
+                <ModalModifyCourses
+                    opened={modalModifyCoursesOpened}
+                    close={() => {
+                        setModalModifyCoursesOpened(false);
+                        refetch();
+                    }}
+                    courseId={selectedCourse?.id_course}
+                    initialCourse={selectedCourse?.name}
+                    initialYearId={selectedCourse?.id_year}
+                />
+            )}
 
-            <DeleteCourseModal
-                opened={deleteCourseOpened}
-                close={closeDeleteCourse}
-                msg={courseToDelete ? `${courseToDelete.name}` : ""}
-                onDelete={async () => {
-                    if (courseToDelete) {
-                        await deleteCourse(courseToDelete.id_course);
-                    }
-                    closeDeleteCourse();
-                    setCourseToDelete(null);
-                }}
-            />
+            {deleteCourseOpened && (
+                <DeleteCourseModal
+                    opened={deleteCourseOpened}
+                    close={closeDeleteCourse}
+                    msg={courseToDelete ? `${courseToDelete.name}` : ""}
+                    onDelete={async () => {
+                        if (courseToDelete) {
+                            await deleteCourse(courseToDelete.id_course);
+                        }
+                        closeDeleteCourse();
+                        setCourseToDelete(null);
+                    }}
+                />
+            )}
 
             <Group justify='space-between'>
                 <Group gap={25}>
                     <Avatar src={colegio.logo} size={64} radius="md" />
                     <Text size="xl" fw={700}>
                         {colegio.nombre} <Text span c="dimmed" size="md">({colegio.abreviacion})</Text>
-                        <Text size="sm" c="dimmed">{colegio.email}</Text>
+                        <Text component="span" size="sm" c="dimmed">{colegio.email}</Text>
                     </Text>
                     <ActionIcon variant="filled" size="lg" aria-label="Settings" style={{ marginLeft: 25 }}
                         onClick={() => setModalEditSchoolOpened(true)}>

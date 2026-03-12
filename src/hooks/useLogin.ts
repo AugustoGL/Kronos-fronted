@@ -29,16 +29,11 @@ export const useLogin = (): UseLoginReturn => {
     setError(null);
 
     try {
-      console.log("iniciando login...");
       const data = await loginService(credentials);
-      console.log("login ok, guardando tokens...");
 
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
-
-      console.log("tokens guardados, llamando fetchAndStoreMyRoles...");
       await fetchAndStoreMyRoles();
-      console.log("fetchAndStoreMyRoles terminó");
 
       onSuccess?.(data);
     } catch (err) {

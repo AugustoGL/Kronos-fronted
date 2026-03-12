@@ -1,7 +1,5 @@
 import { fetchWithAuth } from "./fetchWithAuth";
-
-// TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-const ID_SCHOOL_PLACEHOLDER = 1;
+import { getIdSchool } from "../utils/schoolStorage";
 
 export interface Year {
   id_year: number;
@@ -16,8 +14,9 @@ export interface CreateYearData {
 }
 
 export const getYearsService = async (): Promise<Year[]> => {
+  const id_school = getIdSchool();
   const response = await fetchWithAuth(
-    `/myschool/year/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/year/?id_school=${id_school}`,
     { method: "GET" }
   );
   if (!response.ok) {
@@ -28,11 +27,12 @@ export const getYearsService = async (): Promise<Year[]> => {
 };
 
 export const createYearService = async (data: CreateYearData): Promise<void> => {
+  const id_school = getIdSchool();
   const response = await fetchWithAuth(
-    `/myschool/year/?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/year/?id_school=${id_school}`,
     {
       method: "POST",
-      body: JSON.stringify({ ...data, id_school: ID_SCHOOL_PLACEHOLDER }),
+      body: JSON.stringify({ ...data, id_school }),
     }
   );
   if (!response.ok) {
@@ -42,8 +42,9 @@ export const createYearService = async (data: CreateYearData): Promise<void> => 
 };
 
 export const deleteYearService = async (year_id: number): Promise<void> => {
+  const id_school = getIdSchool();
   const response = await fetchWithAuth(
-    `/myschool/year/${year_id}?id_school=${ID_SCHOOL_PLACEHOLDER}`,
+    `/myschool/year/${year_id}?id_school=${id_school}`,
     { method: "DELETE" }
   );
   if (!response.ok) {

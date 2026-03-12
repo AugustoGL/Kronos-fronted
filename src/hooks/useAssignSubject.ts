@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   getBaseSubjectsService,
   getCoursesService,
@@ -30,7 +30,7 @@ export const useAssignSubject = (): UseAssignSubjectReturn => {
   const [subjectOptions, setSubjectOptions] = useState<SelectOption[]>([]);
   const [courseOptions, setCourseOptions] = useState<SelectOption[]>([]);
   const [professorOptions, setProfessorOptions] = useState<SelectOption[]>([]);
-  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [loadingOptions, setLoadingOptions] = useState(false); // false por defecto, no carga al montar
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,9 +68,7 @@ export const useAssignSubject = (): UseAssignSubjectReturn => {
     }
   };
 
-  useEffect(() => {
-    loadOptions();
-  }, []);
+  // ❌ useEffect eliminado — loadOptions se llama solo cuando abre el modal
 
   const createSubject = async (data: CreateSubjectData): Promise<boolean> => {
     setLoading(true);

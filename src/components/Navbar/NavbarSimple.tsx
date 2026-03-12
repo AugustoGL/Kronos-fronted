@@ -172,8 +172,9 @@ export function NavbarSimple() {
         <Group justify='space-between' style={{ paddingInline: 'var(--mantine-spacing-md)' }}>
           <Group>
             <Avatar size={'md'} name={'Juan Perez'} color="initials" />
-            <Flex direction="column" align={'center'}>
-              <Text fw={500}>Juan perez <Text size='xs'>juanperez@example.com</Text></Text>
+            <Flex direction="column" align={'start'}>
+              <Text fw={500}>Juan perez </Text>
+              <Text size='xs'>juanperez@example.com</Text>
             </Flex>
           </Group>
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 6l6 6l-6 6" /></svg>

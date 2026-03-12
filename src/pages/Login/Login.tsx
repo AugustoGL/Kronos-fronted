@@ -41,8 +41,6 @@ export default function Login() {
         });
     };
 
-    console.log(import.meta.env.VITE_API_URL)
-
     return (
         <Flex
             style={{ height: "90vh", width: "100vw" }}
