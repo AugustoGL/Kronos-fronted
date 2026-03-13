@@ -18,14 +18,12 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
     professorOptions,
     loadingOptions,
     loadOptions,
+    loadSubject,
     createSubject,
+    updateSubject,
     loading,
     error,
   } = useAssignSubject();
-
-  useEffect(() => {
-    if (opened) loadOptions();
-  }, [opened]);
 
   const form = useForm({
     mode: 'uncontrolled',
@@ -43,18 +41,45 @@ function AsignSubjectModal({ opened, close, id, onSuccess }: AsignSubjectModalPr
     }
   });
 
+  useEffect(() => {
+    if (!opened) return;
+
+    const init = async () => {
+      // Cargar opciones primero, luego setear valores si es edición
+      await loadOptions();
+
+      if (id) {
+        const subject = await loadSubject(id);
+        if (subject) {
+          form.setValues({
+            subject: String(subject.id_base_subject),
+            course: String(subject.id_course),
+            teacher: String(subject.id_staff),
+            hours: subject.week_hours,
+          });
+        }
+      }
+    };
+
+    init();
+  }, [opened]);
+
   const handleClose = () => {
     form.reset();
     close();
   };
 
   const handleSubmit = async (values: typeof form.values) => {
-    const ok = await createSubject({
+    const data = {
       week_hours: values.hours!,
       id_staff: Number(values.teacher),
       id_course: Number(values.course),
       id_base_subject: Number(values.subject),
-    });
+    };
+
+    const ok = id
+      ? await updateSubject(id, data)
+      : await createSubject(data);
 
     if (ok) {
       form.reset();

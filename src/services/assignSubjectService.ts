@@ -1,8 +1,6 @@
 import { getIdSchool } from "../utils/schoolStorage";
 import { fetchWithAuth } from "./fetchWithAuth";
 
-// TODO: reemplazar por el id_school real cuando esté el endpoint de perfil
-
 export interface BaseSubject {
   id_base_subject: number;
   name: string;
@@ -21,6 +19,21 @@ export interface Course {
 export interface Professor {
   id_staff: number;
   name_profesor: string;
+}
+
+export interface Subject {
+  id_subject: number;
+  week_hours: number;
+  id_staff: number;
+  id_course: number;
+  id_base_subject: number;
+}
+
+export interface CreateSubjectData {
+  week_hours: number;
+  id_staff: number | null;
+  id_course: number;
+  id_base_subject: number;
 }
 
 export const getBaseSubjectsService = async (): Promise<BaseSubject[]> => {
@@ -50,23 +63,33 @@ export const getProfessorsService = async (): Promise<Professor[]> => {
   return response.json();
 };
 
-export interface CreateSubjectData {
-  week_hours: number;
-  id_staff: number | null;
-  id_course: number;
-  id_base_subject: number;
-}
+export const getSubjectByIdService = async (subject_id: number): Promise<Subject> => {
+  const response = await fetchWithAuth(
+    `/myschool/subject/${subject_id}?id_school=${getIdSchool()}`,
+    { method: "GET" }
+  );
+  if (!response.ok) throw new Error("Error al obtener la materia");
+  return response.json();
+};
 
 export const createSubjectService = async (data: CreateSubjectData): Promise<void> => {
   const response = await fetchWithAuth(
     `/myschool/subject/?id_school=${getIdSchool()}`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    }
+    { method: "POST", body: JSON.stringify(data) }
   );
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error?.detail || "Error al crear la materia");
+  }
+};
+
+export const updateSubjectService = async (subject_id: number, data: CreateSubjectData): Promise<void> => {
+  const response = await fetchWithAuth(
+    `/myschool/subject/${subject_id}?id_school=${getIdSchool()}`,
+    { method: "PUT", body: JSON.stringify(data) }
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error?.detail || "Error al actualizar la materia");
   }
 };
