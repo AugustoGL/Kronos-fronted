@@ -1,4 +1,4 @@
-import { type Staff } from '../services/staffService';
+import { type Staff } from '../services/school/staffService';
 import { normalizeText } from '../utils/utils';
 
 export function filterStaff(

@@ -1,5 +1,5 @@
-import { fetchWithAuth } from "./fetchWithAuth";
-import { getIdSchool } from "../utils/schoolStorage";
+import { fetchWithAuth } from "../fetchWithAuth";
+import { getIdSchool } from "../../utils/schoolStorage";
 
 export interface ScheduleCell {
   id_schedule: number;

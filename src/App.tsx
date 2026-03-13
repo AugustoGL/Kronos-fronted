@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 
-import SubjectPage from './pages/Subject/Subjects';
-import StaffPage from './pages/Staff/Staff';
+import SubjectPage from './pages/school/Subject/Subjects';
+import StaffPage from './pages/school/Staff/Staff';
 import SchoolSettingsPage from './pages/school/SchoolSettings/SchoolSettings';
 import MyHours from './pages/user/MyHours/myHours';
 import Profile from './pages/user/Profile/Profile';

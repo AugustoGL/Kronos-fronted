@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { getMyScheduleService, type MyScheduleResponse, type ScheduleItem, type School } from '../../services/mySchoolsServices';
+import { getMyScheduleService, type MyScheduleResponse, type ScheduleItem, type School } from '../../services/user/mySchoolsServices';
 
 export function useMyHours() {
   const [selectedSchool, setSelectedSchool] = useState<string>('todos');

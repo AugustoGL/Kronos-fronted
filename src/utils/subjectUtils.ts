@@ -1,4 +1,4 @@
-import { type Subject } from '../services/subjectService';
+import { type Subject } from '../services/school/subjectService';
 import { normalizeText } from './utils';
 
 export function filterSubjects(

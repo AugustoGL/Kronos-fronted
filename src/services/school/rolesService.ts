@@ -1,5 +1,5 @@
-import { fetchWithAuth } from "./fetchWithAuth";
-import { setMyRoles } from "../utils/schoolStorage";
+import { fetchWithAuth } from "../fetchWithAuth";
+import { setMyRoles } from "../../utils/schoolStorage";
 
 type MyRolesResponse = Record<string, number[]>;
 

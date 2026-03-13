@@ -1,4 +1,4 @@
-import { type School } from '../services/mySchoolsServices';
+import { type School } from '../services/user/mySchoolsServices';
 
 
 export interface Module {

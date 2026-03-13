@@ -1,4 +1,4 @@
-import { fetchWithAuth } from "./fetchWithAuth";
+import { fetchWithAuth } from "../fetchWithAuth";
 
 export interface StaffAPI {
   id_user: number;

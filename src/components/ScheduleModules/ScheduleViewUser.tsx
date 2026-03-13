@@ -1,7 +1,7 @@
 import { Box, Table, Text, ScrollArea, Flex } from '@mantine/core';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import type { MyScheduleResponse, ScheduleItem } from '../../services/mySchoolsServices';
+import type { MyScheduleResponse, ScheduleItem } from '../../services/user/mySchoolsServices';
 
 interface ScheduleProps {
   schedule: MyScheduleResponse;

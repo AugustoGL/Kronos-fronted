@@ -1,5 +1,5 @@
-import { getIdSchool } from "../utils/schoolStorage";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { getIdSchool } from "../../utils/schoolStorage";
+import { fetchWithAuth } from "../fetchWithAuth";
 
 export interface BaseSubject {
   id_base_subject: number;
