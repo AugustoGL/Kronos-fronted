@@ -3,13 +3,13 @@ import './index.css';
 
 import SubjectPage from './pages/Subject/Subjects';
 import StaffPage from './pages/Staff/Staff';
-import SchoolSettingsPage from './pages/SchoolSettings/SchoolSettings';
-import MyHours from './pages/MyHours/myHours';
-import Profile from './pages/Profile/Profile';
-import SchoolCalendar from './pages/SchoolCalendar/SchoolCalendar';
+import SchoolSettingsPage from './pages/school/SchoolSettings/SchoolSettings';
+import MyHours from './pages/user/MyHours/myHours';
+import Profile from './pages/user/Profile/Profile';
+import SchoolCalendar from './pages/school/SchoolCalendar/SchoolCalendar';
 
-import Login from './pages/Login/Login';
-import Register from './pages/Login/Register';
+import Login from './pages/user/Login/Login';
+import Register from './pages/user/Login/Register';
 
 import './App.css'
 

@@ -1,40 +1,38 @@
+import { fetchWithAuth } from "./fetchWithAuth";
+
 export interface School {
-    id_school: number;
-    school: string;
-    abbreviation: string;
-    image: string;
-    color: string;
+  id_school: number;
+  school: string;
+  abbreviation: string;
+  image: string;
+  color: string;
 }
 
-export const listSchools: School[] = [
-    {
-        id_school: 1,
-        school: 'Colegio San Martín',
-        abbreviation: 'CSM',
-        image: 'https://example.com/images/san-martin-logo.png',
-        color: '#FF5733'
-    },
-    {
-        id_school: 2,
-        school: 'Instituto Belgrano',
-        abbreviation: 'IBE',
-        image: 'https://example.com/images/belgrano-logo.png',
-        color: '#33A1FF'
-    },
-    {
-        id_school: 3,
-        school: 'Escuela Sarmiento',
-        abbreviation: 'ESA',
-        image: 'https://example.com/images/sarmiento-logo.png',
-        color: '#28A745'
-    },
-    {
-        id_school: 4,
-        school: 'Colegio Mitre',
-        abbreviation: 'CMI',
-        image: 'https://example.com/images/mitre-logo.png',
-        color: '#FFC300'
-    },
-];
+export interface ScheduleItem {
+  type: "class" | "occupied";
+  id_module: number;
+  name: string;
+  day: string;
+  start_time: string;
+  end_time: string;
+  // campos de class
+  id_school?: number;
+  color_school?: string;
+  id_subject?: number;
+  name_subject?: string;
+  abbreviation_subject?: string;
+  color_subject?: string;
+  course?: string;
+  id_schedule_version?: number;
+}
 
+export type MyScheduleResponse = Record<string, ScheduleItem[]>;
 
+export const getMyScheduleService = async (): Promise<MyScheduleResponse> => {
+  const response = await fetchWithAuth("/me/myschools/pages/schedule", { method: "GET" });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error?.detail || "Error al obtener el horario");
+  }
+  return response.json();
+};

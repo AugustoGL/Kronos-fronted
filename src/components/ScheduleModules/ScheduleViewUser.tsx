@@ -1,170 +1,144 @@
-import { Box, Table, Text, ScrollArea, Flex, Avatar } from '@mantine/core';
+import { Box, Table, Text, ScrollArea, Flex } from '@mantine/core';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import { type Module } from '../../utils/myHoursUtils';
-//import BloqueNoDisponible from '../Elementauxiliar'
-
-interface School {
-  id_school: number;
-  abbreviation: string;
-  image: string;
-  color: string;
-}
+import type { MyScheduleResponse, ScheduleItem } from '../../services/mySchoolsServices';
 
 interface ScheduleProps {
-  modulos: Module[];
-  listSchools: School[];
+  schedule: MyScheduleResponse;
   altoPorMinuto?: number;
 }
 
-const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes'];
+const DAY_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+const DAY_LABELS: Record<string, string> = {
+  MONDAY: 'Lunes',
+  TUESDAY: 'Martes',
+  WEDNESDAY: 'Miércoles',
+  THURSDAY: 'Jueves',
+  FRIDAY: 'Viernes',
+};
 
 const minutosEntre = (inicio: string, fin: string): number =>
   dayjs(`2000-01-01T${fin}`).diff(dayjs(`2000-01-01T${inicio}`), 'minute');
 
-const capitalize = (text: string) =>
-  text.charAt(0).toUpperCase() + text.slice(1);
+export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
+  const allItems = useMemo(() => Object.values(schedule).flat(), [schedule]);
 
-/**
- * Devuelve el color del colegio dado su ID.
- */
-const getSchoolColor = (id_colegio: number, schools: School[]): string => {
-  return schools.find((s) => s.id_school === id_colegio)?.color ?? '#888';
-};
-
-/**
- * Devuelve la abreviatura del colegio.
- */
-const getSchoolAbbreviation = (id_colegio: number, schools: School[]): string => {
-  return schools.find((s) => s.id_school === id_colegio)?.abbreviation ?? '??';
-};
-
-export function ScheduleView({ modulos, listSchools, altoPorMinuto = 3 }: ScheduleProps) {
-  const horas = useMemo(() => {
-    const horasInicio = modulos.map((m) => m.horaInicio);
-    const horasFin = modulos.map((m) => m.horaFin);
-    const horaInicioMin = horasInicio.sort()[0];
-    const horaFinMax = horasFin.sort().reverse()[0];
+  const { horaInicioMin, horaFinMax, totalMinutos } = useMemo(() => {
+    if (allItems.length === 0) return { horaInicioMin: '08:00', horaFinMax: '15:00', totalMinutos: 420 };
+    const starts = allItems.map((m) => m.start_time).sort();
+    const ends = allItems.map((m) => m.end_time).sort().reverse();
+    const horaInicioMin = starts[0];
+    const horaFinMax = ends[0];
     const totalMinutos = minutosEntre(horaInicioMin, horaFinMax);
     return { horaInicioMin, horaFinMax, totalMinutos };
-  }, [modulos]);
+  }, [allItems]);
 
-  /**
-   * Renderiza las filas de un día específico.
-   */
-  const renderDia = (dia: string) => {
-    const modulosDia = useMemo(() => {
-      return modulos
-        .filter((m) => m.dia === dia)
-        .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
-    }, [modulos, dia]);
+  const renderItem = (item: ScheduleItem, key: string) => {
+    const duracion = minutosEntre(item.start_time, item.end_time);
+    const height = duracion * altoPorMinuto;
 
-    let contenidoFilas: React.ReactNode[] = [];
-    let horaCursor = horas.horaInicioMin;
-
-    modulosDia.forEach((modulo) => {
-      // Espacio vacío entre módulos
-      if (modulo.horaInicio > horaCursor) {
-        const espacio = minutosEntre(horaCursor, modulo.horaInicio);
-        contenidoFilas.push(
-          <Table.Tr key={`espacio-${horaCursor}`}>
-            <Table.Td style={{ height: espacio * altoPorMinuto }} />
-          </Table.Tr>
-        );
-      }
-
-      // Módulo actual
-      const duracion = minutosEntre(modulo.horaInicio, modulo.horaFin);
-      const color = getSchoolColor(modulo.id_colegio, listSchools);
-      const abbreviation = getSchoolAbbreviation(modulo.id_colegio, listSchools);
-
-      contenidoFilas.push(
-        <Table.Tr key={modulo.id}>
-
+    if (item.type === 'occupied') {
+      return (
+        <Table.Tr key={key}>
           <Table.Td
-            className="espacioFinalHover"
             style={{
-              height: duracion * altoPorMinuto,
+              height,
+              backgroundColor: '#e5353544',
+              border: '2px solid #e53535',
               textAlign: 'center',
               userSelect: 'none',
-              backgroundColor: `${color}55`,
-              border: `2px solid ${color}`,
             }}
           >
-            <Text
-              size="sm"
-              style={{
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 15,
-                padding: '2.5px 0',
-              }}
-            >
-              <Avatar
-                size={30}
-                radius="xl"
-                src="https://imgs.search.brave.com/WD6xEN75c5j99NK9l0NdI-H3FfSv2thYZDv6dsQnwDY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS12ZWN0b3Iv/YWJzdHJhY3QtbG9n/by1mbGFtZS1zaGFw/ZV8xMDQzLTQ0Lmpw/Zz9zZW10PWFpc19o/eWJyaWQmdz03NDAm/cT04MA"
-              />
-              {abbreviation}
-            </Text>
-
-            <Text size="xs" style={{ color: 'white', padding: '2.5px 0' }}>
-              Matemática 5C
-            </Text>
-
-            <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
-              {modulo.horaInicio} - {modulo.horaFin}
-            </Text>
+            <Text size="xs" c="red" fw={600}>Tiempo ocupado</Text>
+            <Text size="xs" c="red">{item.start_time} - {item.end_time}</Text>
           </Table.Td>
-        </Table.Tr>
-      );
-
-      horaCursor = modulo.horaFin;
-    });
-
-    // Espacio al final del día
-    if (horaCursor < horas.horaFinMax) {
-      const espacioFinal = minutosEntre(horaCursor, horas.horaFinMax);
-      contenidoFilas.push(
-        <Table.Tr key={`final-${dia}`}>
-          <Table.Td style={{ height: espacioFinal * altoPorMinuto }} />
         </Table.Tr>
       );
     }
 
     return (
-      <Box
-        key={dia}
-        style={{
-          minWidth: 75,
-          flex: 1,
-          marginRight: 8,
-        }}
-      >
+      <Table.Tr key={key}>
+        <Table.Td
+          style={{
+            height,
+            backgroundColor: `${item.color_school}55`,
+            border: `2px solid ${item.color_school}`,
+            textAlign: 'center',
+            userSelect: 'none',
+            padding: '4px 2px',
+          }}
+        >
+            <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
+            {item.name_subject} - {item.course}
+          </Text>
+            <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
+            {item.start_time} - {item.end_time}
+          </Text>
+        </Table.Td>
+      </Table.Tr>
+    );
+  };
+
+  const renderDia = (day: string) => {
+    const items = (schedule[day] ?? [])
+      .slice()
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    let rows: React.ReactNode[] = [];
+    let cursor = horaInicioMin;
+
+    items.forEach((item, idx) => {
+      // Espacio vacío antes del item
+      if (item.start_time > cursor) {
+        const espacio = minutosEntre(cursor, item.start_time);
+        rows.push(
+          <Table.Tr key={`gap-${day}-${cursor}`}>
+            <Table.Td style={{ height: espacio * altoPorMinuto }} />
+          </Table.Tr>
+        );
+      }
+      rows.push(renderItem(item, `${day}-${idx}`));
+      cursor = item.end_time;
+    });
+
+    // Espacio final
+    if (cursor < horaFinMax) {
+      const espacio = minutosEntre(cursor, horaFinMax);
+      rows.push(
+        <Table.Tr key={`end-${day}`}>
+          <Table.Td style={{ height: espacio * altoPorMinuto }} />
+        </Table.Tr>
+      );
+    }
+
+    return (
+      <Box key={day} style={{ minWidth: 75, flex: 1, marginRight: 8 }}>
         <Table
           withColumnBorders
           withTableBorder
-          style={{ height: horas.totalMinutos * altoPorMinuto }}
+          style={{ height: totalMinutos * altoPorMinuto }}
         >
           <Table.Thead>
             <Table.Tr>
               <Table.Th style={{ textAlign: 'center', userSelect: 'none' }}>
-                {capitalize(dia)}
+                {DAY_LABELS[day] ?? day}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>{contenidoFilas}</Table.Tbody>
+          <Table.Tbody>{rows}</Table.Tbody>
         </Table>
       </Box>
     );
   };
 
+  if (allItems.length === 0) {
+    return <Text c="dimmed">No hay horarios disponibles.</Text>;
+  }
+
   return (
     <ScrollArea>
       <Flex align="start">
-        {dias.map((dia) => renderDia(dia))}
+        {DAY_ORDER.filter((d) => schedule[d]?.length > 0).map(renderDia)}
       </Flex>
     </ScrollArea>
   );
