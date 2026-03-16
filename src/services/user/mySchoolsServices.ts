@@ -9,7 +9,7 @@ export interface School {
 }
 
 export interface ScheduleItem {
-  type: "class" | "occupied";
+  type: "class" | "unavailable";
   id_module: number;
   name: string;
   day: string;

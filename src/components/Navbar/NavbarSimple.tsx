@@ -6,9 +6,10 @@ import {
   IconMath,
   IconClockHour3,
   IconChevronRight,
+  IconBook,
 } from '@tabler/icons-react';
 import { Code, Group, Flex, Avatar, Text, Collapse, UnstyledButton, Box } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import classes from './NavbarSimple.module.css';
 import { getMyRoles, setActiveSchool, getActiveSchool } from '../../utils/schoolStorage';
 
@@ -23,16 +24,18 @@ const schoolLinks = [
 
 const personalLinks = [
   { link: '/myhours', label: 'Mis Horas', icon: IconClockHour3 },
+  { link: '/mysubjects', label: 'Mis Materias', icon: IconBook },
 ];
 
 function SchoolLinks({ id_school, collapsed }: { id_school: number; collapsed: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const activeSchool = getActiveSchool();
+  const [activeSchool, setActiveSchoolState] = useState(getActiveSchool());
 
   const handleClick = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    setActiveSchool(id_school); // setear el colegio activo al clickear
+    setActiveSchool(id_school);
+    setActiveSchoolState(id_school); // forzar re-render del active
     navigate(path);
   };
 
@@ -43,7 +46,6 @@ function SchoolLinks({ id_school, collapsed }: { id_school: number; collapsed: b
           to={item.link}
           onClick={handleClick(item.link)}
           className={classes.link}
-          // solo se marca si esta ruta está activa Y este colegio es el activo
           data-active={(location.pathname === item.link && activeSchool === id_school) || undefined}
           key={`${id_school}-${item.label}`}
           style={collapsed ? { paddingLeft: 30 } : undefined}
@@ -57,7 +59,11 @@ function SchoolLinks({ id_school, collapsed }: { id_school: number; collapsed: b
 }
 
 function CollapseSchoolSection({ id_school }: { id_school: number }) {
-  const [opened, setOpened] = useState(false);
+  const location = useLocation();
+  const activeSchool = getActiveSchool();
+  const isCurrentSchool = activeSchool === id_school;
+  const isOnSchoolRoute = schoolLinks.some((item) => location.pathname === item.link);
+  const [opened, setOpened] = useState(isCurrentSchool && isOnSchoolRoute);
 
   return (
     <Box>
@@ -68,7 +74,7 @@ function CollapseSchoolSection({ id_school }: { id_school: number }) {
       >
         <Group gap="sm">
           <IconSchool size={18} stroke={1.5} style={{ color: 'var(--mantine-color-dimmed)' }} />
-          <Text size="sm">Colegio {id_school} {/* (auxiliar) */}</Text>
+          <Text size="sm">Colegio {id_school}</Text>
         </Group>
         <IconChevronRight
           size={14}
@@ -99,6 +105,13 @@ export function NavbarSimple() {
     directivoIds = [];
   }
 
+  // Si hay un solo colegio, asegurarse de que esté seteado como activo
+  useEffect(() => {
+    if (directivoIds.length === 1 && getActiveSchool() !== directivoIds[0]) {
+      setActiveSchool(directivoIds[0]);
+    }
+  }, []);
+
   const handleClick = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     navigate(path);
@@ -125,7 +138,6 @@ export function NavbarSimple() {
 
       <div className={classes.navbarMain} style={{ padding: 0 }}>
 
-        {/* Home siempre primero */}
         <div className={classes.section}>
           <div className={classes.collections}>
             <NavLink
@@ -173,7 +185,7 @@ export function NavbarSimple() {
           <Group>
             <Avatar size={'md'} name={'Juan Perez'} color="initials" />
             <Flex direction="column" align={'start'}>
-              <Text fw={500}>Juan perez </Text>
+              <Text fw={500}>Juan perez</Text>
               <Text size='xs'>juanperez@example.com</Text>
             </Flex>
           </Group>

@@ -1,6 +1,6 @@
 import { Box, Table, Text, ScrollArea, Flex } from '@mantine/core';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { MyScheduleResponse, ScheduleItem } from '../../services/user/mySchoolsServices';
 
 interface ScheduleProps {
@@ -20,7 +20,12 @@ const DAY_LABELS: Record<string, string> = {
 const minutosEntre = (inicio: string, fin: string): number =>
   dayjs(`2000-01-01T${fin}`).diff(dayjs(`2000-01-01T${inicio}`), 'minute');
 
+// Key única para identificar grupo de materia+colegio
+const groupKey = (item: ScheduleItem) => `${item.id_subject}-${item.id_school}`;
+
 export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
+  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+
   const allItems = useMemo(() => Object.values(schedule).flat(), [schedule]);
 
   const { horaInicioMin, horaFinMax, totalMinutos } = useMemo(() => {
@@ -37,7 +42,7 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
     const duracion = minutosEntre(item.start_time, item.end_time);
     const height = duracion * altoPorMinuto;
 
-    if (item.type === 'occupied') {
+    if (item.type === 'unavailable') {
       return (
         <Table.Tr key={key}>
           <Table.Td
@@ -56,22 +61,36 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
       );
     }
 
+    const gKey = groupKey(item);
+    const isHovered = hoveredGroup === gKey;
+    const schoolColor = item.color_school ?? '#888';
+    const subjectColor = item.color_subject ?? schoolColor;
+
+    // En hover: fondo y borde del color de la materia. Normal: color del colegio
+    const bgColor = isHovered ? `${subjectColor}AA` : `${schoolColor}55`;
+    const borderColor = isHovered ? subjectColor : `${schoolColor}AA`;
+
     return (
       <Table.Tr key={key}>
         <Table.Td
+onClick={() =>
+  setHoveredGroup(prev => (prev === gKey ? null : gKey))
+}
           style={{
             height,
-            backgroundColor: `${item.color_school}55`,
-            border: `2px solid ${item.color_school}`,
+            backgroundColor: bgColor,
+            border: `2px solid ${borderColor}`,
             textAlign: 'center',
             userSelect: 'none',
             padding: '4px 2px',
+            cursor: 'default',
+            transition: 'background-color 150ms ease, border-color 150ms ease',
           }}
         >
-            <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
+          <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
             {item.name_subject} - {item.course}
           </Text>
-            <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
+          <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
             {item.start_time} - {item.end_time}
           </Text>
         </Table.Td>
@@ -88,7 +107,6 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
     let cursor = horaInicioMin;
 
     items.forEach((item, idx) => {
-      // Espacio vacío antes del item
       if (item.start_time > cursor) {
         const espacio = minutosEntre(cursor, item.start_time);
         rows.push(
@@ -101,7 +119,6 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
       cursor = item.end_time;
     });
 
-    // Espacio final
     if (cursor < horaFinMax) {
       const espacio = minutosEntre(cursor, horaFinMax);
       rows.push(

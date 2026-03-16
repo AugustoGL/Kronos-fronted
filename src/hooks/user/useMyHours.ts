@@ -48,7 +48,7 @@ export function useMyHours() {
     const result: MyScheduleResponse = {};
     Object.entries(schedule).forEach(([day, items]) => {
       result[day] = items.filter(
-        (item) => item.type === 'occupied' || item.id_school === id
+        (item) => item.type === 'unavailable' || item.id_school === id
       );
     });
     return result;
