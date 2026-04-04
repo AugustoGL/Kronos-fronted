@@ -1,11 +1,17 @@
-import { Box, Table, Text, ScrollArea, Flex } from '@mantine/core';
+import { Box, Table, Text, ScrollArea, Flex, Avatar, ActionIcon } from '@mantine/core';
+import { IconTrash } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-import type { MyScheduleResponse, ScheduleItem } from '../../services/user/mySchoolsServices';
+import type { MyScheduleResponse, ScheduleItem, School } from '../../services/user/mySchoolsServices';
+import { deleteAvailabilityService } from '../../services/user/aviabilityServices';
+import DeleteModal from '../Modals/DeleteModal';
 
 interface ScheduleProps {
   schedule: MyScheduleResponse;
+  schools?: School[];
   altoPorMinuto?: number;
+  onAvailabilityDeleted?: () => void;
 }
 
 const DAY_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
@@ -20,11 +26,12 @@ const DAY_LABELS: Record<string, string> = {
 const minutosEntre = (inicio: string, fin: string): number =>
   dayjs(`2000-01-01T${fin}`).diff(dayjs(`2000-01-01T${inicio}`), 'minute');
 
-// Key única para identificar grupo de materia+colegio
 const groupKey = (item: ScheduleItem) => `${item.id_subject}-${item.id_school}`;
 
-export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+export function ScheduleView({ schedule, schools = [], altoPorMinuto = 3, onAvailabilityDeleted }: ScheduleProps) {
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
 
   const allItems = useMemo(() => Object.values(schedule).flat(), [schedule]);
 
@@ -32,11 +39,18 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
     if (allItems.length === 0) return { horaInicioMin: '08:00', horaFinMax: '15:00', totalMinutos: 420 };
     const starts = allItems.map((m) => m.start_time).sort();
     const ends = allItems.map((m) => m.end_time).sort().reverse();
-    const horaInicioMin = starts[0];
-    const horaFinMax = ends[0];
-    const totalMinutos = minutosEntre(horaInicioMin, horaFinMax);
-    return { horaInicioMin, horaFinMax, totalMinutos };
+    return { horaInicioMin: starts[0], horaFinMax: ends[0], totalMinutos: minutosEntre(starts[0], ends[0]) };
   }, [allItems]);
+
+  const getSchool = (id_school?: number) => schools.find((s) => s.id_school === id_school);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    await deleteAvailabilityService(deleteTarget.id);
+    closeDelete();
+    setDeleteTarget(null);
+    onAvailabilityDeleted?.();
+  };
 
   const renderItem = (item: ScheduleItem, key: string) => {
     const duracion = minutosEntre(item.start_time, item.end_time);
@@ -45,37 +59,60 @@ export function ScheduleView({ schedule, altoPorMinuto = 3 }: ScheduleProps) {
     if (item.type === 'unavailable') {
       return (
         <Table.Tr key={key}>
-          <Table.Td
-            style={{
-              height,
-              backgroundColor: '#e5353544',
-              border: '2px solid #e53535',
-              textAlign: 'center',
-              userSelect: 'none',
-            }}
-          >
-            <Text size="xs" c="red" fw={600}>Tiempo ocupado</Text>
+          <Table.Td style={{
+            height,
+            backgroundColor: '#e5353522',
+            border: '2px solid #e53535',
+            textAlign: 'center',
+            userSelect: 'none',
+            padding: '4px 2px',
+            position: 'relative',
+          }}>
+{/*
+            <Text size="xs" c="red" fw={600}>Tiempo no disponible</Text>
             <Text size="xs" c="red">{item.start_time} - {item.end_time}</Text>
+            {item.id_avaibility && (
+              <ActionIcon
+                size="lg"
+                color="red"
+                variant="subtle"
+                mt={4}
+                onClick={() => {
+                  setDeleteTarget({
+                    id: item.id_avaibility!,
+                    label: `el bloqueo del ${DAY_LABELS[item.day] ?? item.day} de ${item.start_time} a ${item.end_time}`,
+                  });
+                  openDelete();
+                }}
+              >
+                <IconTrash size={18} />
+              </ActionIcon>
+            )}
+            */}
           </Table.Td>
         </Table.Tr>
       );
     }
 
     const gKey = groupKey(item);
-    const isHovered = hoveredGroup === gKey;
-    const schoolColor = item.color_school ?? '#888';
-    const subjectColor = item.color_subject ?? schoolColor;
+    const isActive = activeGroup === gKey;
+    const school = getSchool(item.id_school);
+    const schoolColor = school?.color ?? item.color_school ?? '#888';
+const subjectColor = item?.color_subject ?? schoolColor;
 
-    // En hover: fondo y borde del color de la materia. Normal: color del colegio
-    const bgColor = isHovered ? `${subjectColor}AA` : `${schoolColor}55`;
-    const borderColor = isHovered ? subjectColor : `${schoolColor}AA`;
+const bgColor =
+  item?.type === "overlapping"
+    ? "#00ff00"
+    : isActive
+      ? `${subjectColor}AA`
+      : `${schoolColor}55`;
+
+const borderColor = isActive ? subjectColor : `${schoolColor}AA`;
 
     return (
       <Table.Tr key={key}>
         <Table.Td
-onClick={() =>
-  setHoveredGroup(prev => (prev === gKey ? null : gKey))
-}
+          onClick={() => setActiveGroup(prev => prev === gKey ? null : gKey)}
           style={{
             height,
             backgroundColor: bgColor,
@@ -83,16 +120,29 @@ onClick={() =>
             textAlign: 'center',
             userSelect: 'none',
             padding: '4px 2px',
-            cursor: 'default',
+            cursor: 'pointer',
             transition: 'background-color 150ms ease, border-color 150ms ease',
           }}
-        >
-          <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
-            {item.name_subject} - {item.course}
+        >{/*
+          <Avatar
+            src={school?.image || null}
+            alt={school?.school}
+            size={24}
+            radius="xl"
+            color="initials"
+            name={school?.abbreviation}
+            style={{ margin: '0 auto 2px' }}
+          />
+          <Text size="sm" style={{ color: 'white', padding: '1px 0' }}>
+            {item.name_subject}
           </Text>
-          <Text size="sm" style={{ color: 'white', padding: '2.5px 0' }}>
+          <Text size="xs" style={{ color: 'white', opacity: 0.85 }}>
+            {item.course}
+          </Text>
+          <Text size="xs" style={{ color: 'white', opacity: 0.7 }}>
             {item.start_time} - {item.end_time}
           </Text>
+          */}
         </Table.Td>
       </Table.Tr>
     );
@@ -130,11 +180,7 @@ onClick={() =>
 
     return (
       <Box key={day} style={{ minWidth: 75, flex: 1, marginRight: 8 }}>
-        <Table
-          withColumnBorders
-          withTableBorder
-          style={{ height: totalMinutos * altoPorMinuto }}
-        >
+        <Table withColumnBorders withTableBorder style={{ height: totalMinutos * altoPorMinuto }}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th style={{ textAlign: 'center', userSelect: 'none' }}>
@@ -148,15 +194,21 @@ onClick={() =>
     );
   };
 
-  if (allItems.length === 0) {
-    return <Text c="dimmed">No hay horarios disponibles.</Text>;
-  }
+  if (allItems.length === 0) return <Text c="dimmed">No hay horarios disponibles.</Text>;
 
   return (
-    <ScrollArea>
-      <Flex align="start">
-        {DAY_ORDER.filter((d) => schedule[d]?.length > 0).map(renderDia)}
-      </Flex>
-    </ScrollArea>
+    <>
+      <DeleteModal
+        opened={deleteOpened}
+        close={closeDelete}
+        msg={deleteTarget?.label}
+        onDelete={handleDeleteConfirm}
+      />
+      <ScrollArea>
+        <Flex align="start">
+          {DAY_ORDER.filter((d) => schedule[d]?.length > 0).map(renderDia)}
+        </Flex>
+      </ScrollArea>
+    </>
   );
 }

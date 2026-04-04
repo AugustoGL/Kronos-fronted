@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Flex, Button, Loader, Alert } from '@mantine/core';
 import { ScheduleView } from '../../../components/ScheduleModules/ScheduleViewUser';
 import ChangeSchoolModal from './changeColorSchool';
+import CreateAvailabilityModal from './createAvaibilityModal';
 import { useMyHours } from '../../../hooks/user/useMyHours';
 
 function MyHours() {
@@ -11,17 +12,22 @@ function MyHours() {
     modalOpened,
     openModal,
     closeModal,
+    availabilityOpened,
+    openAvailability,
+    closeAvailability,
     schools,
+    staffColors,
     schedule,
     loading,
     error,
+    refetchStaff,
+    refetchSchedule,
   } = useMyHours();
 
   const schoolButtons = useMemo(() => {
     return schools.map((school) => (
       <Button
         key={school.id_school}
-        tt="capitalize"
         variant={selectedSchool === String(school.id_school) ? 'filled' : 'default'}
         onClick={() => changeSchool(String(school.id_school))}
       >
@@ -37,10 +43,17 @@ function MyHours() {
     <div className="contenedor-tabla">
 
       <ChangeSchoolModal
-        opened={modalOpened}
-        onClose={closeModal}
-        schools={schools}
-      />
+          opened={modalOpened}
+          onClose={closeModal}
+          staffColors={staffColors}
+          onSaved={refetchStaff}
+        />
+
+        <CreateAvailabilityModal
+          opened={availabilityOpened}
+          onClose={closeAvailability}
+          onSuccess={refetchSchedule}
+        />
 
       <div className="contenedor-tabla-filtros">
         <Button.Group>
@@ -54,12 +67,16 @@ function MyHours() {
         </Button.Group>
 
         <Button onClick={openModal}>Editar colores</Button>
-        <Button color="red">Tiempo ocupado</Button>
+        <Button color="red" onClick={openAvailability}>Tiempo ocupado</Button>
       </div>
 
       <Flex wrap="nowrap" style={{ overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <ScheduleView schedule={schedule} />
+          <ScheduleView
+            schedule={schedule}
+            schools={schools}
+            onAvailabilityDeleted={refetchSchedule}
+          />
         </div>
       </Flex>
     </div>
