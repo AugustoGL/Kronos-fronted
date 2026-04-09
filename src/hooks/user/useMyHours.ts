@@ -86,11 +86,22 @@ export function useMyHours() {
     if (selectedSchool === 'todos') return schedule;
     const id = Number(selectedSchool);
     const result: MyScheduleResponse = {};
+
     Object.entries(schedule).forEach(([day, items]) => {
-      result[day] = items.filter(
-        (item) => item.type === 'unavailable' || item.id_school === id
+      // id_avaibility que tienen al menos un overlapping del colegio filtrado
+      const relevantAvaibilityIds = new Set(
+        items
+          .filter((i) => i.type === 'overlapping' && i.id_school === id && i.id_avaibility != null)
+          .map((i) => i.id_avaibility!)
+      );
+
+      result[day] = items.filter((item) =>
+        item.id_school === id ||
+        (item.id_avaibility != null && relevantAvaibilityIds.has(item.id_avaibility)) ||
+        (item.type === 'unavailable' && item.id_avaibility == null)
       );
     });
+
     return result;
   }, [schedule, selectedSchool]);
 
