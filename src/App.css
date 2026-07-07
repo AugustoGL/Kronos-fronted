@@ -53,8 +53,7 @@
     background-color: var(--mantine-color-dark-8);
 }
 
-.contenedor-grilla {
-    gap: 50px;
+.contenedor-grilla-padre {
     display: flex;
     flex-direction: column;
     flex-grow: 1;

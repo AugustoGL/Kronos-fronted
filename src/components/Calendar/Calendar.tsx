@@ -1,11 +1,13 @@
-import { Box, Table, ScrollArea, Text, Avatar, Tooltip, Flex } from '@mantine/core';
-import type { ScheduleCell } from '../../services/scheduleService';
+import { Box, Table, ScrollArea, Text, Avatar, Tooltip, Flex, Badge } from '@mantine/core';
+import type { ScheduleCell } from '../../services/school/scheduleService';
 
 interface CursoModuloGridProps {
   dia: string;
   cursos: { id_course: number; name_course: string }[];
   modulos?: number;
   data?: ScheduleCell[];
+  editMode?: boolean;
+  onCellClick?: (cell: ScheduleCell) => void;
 }
 
 export function CursoModuloGrid({
@@ -13,6 +15,8 @@ export function CursoModuloGrid({
   cursos,
   modulos = 11,
   data = [],
+  editMode = false,
+  onCellClick,
 }: CursoModuloGridProps) {
   const numerosModulo = Array.from({ length: modulos }, (_, i) => i + 1);
 
@@ -88,32 +92,55 @@ export function CursoModuloGrid({
                     const cell = cellMap.get(`${numeroModulo}-${curso.id_course}`);
                     const color = cell?.color_subject;
 
+                    const tooltipContent = cell ? (
+                      <Flex direction="column" gap={4} style={{ padding: '8px 4px', minWidth: 180 }}>
+                        <Flex align="center" gap={8}>
+                          <Avatar size={32} radius="xl" src={cell.url_picture_user} />
+                          <div>
+                            <Text size="sm" fw={700} style={{ lineHeight: 1.2 }}>{cell.name_subject}</Text>
+                            <Text size="xs" c="dimmed" style={{ lineHeight: 1.2 }}>{cell.full_name_user}</Text>
+                          </div>
+                        </Flex>
+                        <Flex gap={6} wrap="wrap" mt={2}>
+                          <Badge size="xs" variant="light" color="blue">{cell.name_course}</Badge>
+                          <Badge size="xs" variant="light" color="gray">Módulo {cell.name_module}</Badge>
+                          <Badge size="xs" variant="light" color="teal">
+                            {cell.start_time.slice(0, 5)} - {cell.end_time.slice(0, 5)}
+                          </Badge>
+                        </Flex>
+                      </Flex>
+                    ) : '';
+
                     return (
                       <Tooltip
                         key={curso.id_course}
-                        disabled={!cell}
-                        label={cell ? (
-                          <Flex direction="column" style={{ padding: '5px', minWidth: '150px' }}>
-                            <Text size="sm" fw={600}>{cell.name_subject}</Text>
-                            <Text size="sm">{cell.full_name_user}</Text>
-                            <Text size="sm">{cell.name_course} · Módulo {cell.name_module}</Text>
-                            <Text size="sm">{cell.start_time.slice(0, 5)} - {cell.end_time.slice(0, 5)}</Text>
-                          </Flex>
-                        ) : ''}
-                        transitionProps={{ transition: 'pop', duration: 300 }}
-                        openDelay={300}
-                        arrowSize={7}
+                        disabled={!cell || editMode}
+                        label={tooltipContent}
+                        transitionProps={{ transition: 'pop', duration: 200 }}
+                        openDelay={200}
+                        arrowSize={8}
                         withArrow
+                        color="dark"
+                        styles={{
+                          tooltip: {
+                            border: color ? `1px solid ${color}66` : '1px solid var(--mantine-color-dark-4)',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                          }
+                        }}
                       >
                         <Table.Td
+                          onClick={() => editMode && cell && onCellClick?.(cell)}
                           style={{
                             height: 40,
-                            cursor: cell ? 'pointer' : 'default',
+                            cursor: editMode && cell ? 'pointer' : cell ? 'default' : 'default',
                             minWidth: 100,
                             textAlign: 'center',
                             backgroundColor: color ? `${color}77` : undefined,
-                            boxShadow: color ? `inset 0 0 0 3px ${color}99` : undefined,
-                            transition: 'background-color 0.15s ease',
+                            boxShadow: editMode && color
+                              ? `inset 0 0 0 3px ${color}`
+                              : color ? `inset 0 0 0 3px ${color}99` : undefined,
+                            transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+                            outline: editMode && cell ? `2px dashed ${color ?? 'var(--mantine-color-blue-5)'}44` : undefined,
                           }}
                           onMouseEnter={(e) => {
                             if (color) (e.currentTarget as HTMLElement).style.backgroundColor = `${color}99`;
@@ -121,7 +148,6 @@ export function CursoModuloGrid({
                           onMouseLeave={(e) => {
                             if (color) (e.currentTarget as HTMLElement).style.backgroundColor = `${color}77`;
                           }}
-                          className="espacioFinalHover"
                         >
                           {cell ? (
                             <div style={{

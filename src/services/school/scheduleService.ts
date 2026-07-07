@@ -28,6 +28,12 @@ export interface ScheduleDay {
 
 export type ScheduleResponse = Record<string, ScheduleDay>;
 
+export interface UpdateScheduleCellData {
+  id_schedule: number;
+  id_subject: number;
+  id_staff: number;
+}
+
 export const getScheduleService = async (): Promise<ScheduleResponse> => {
   const response = await fetchWithAuth(
     `/myschool/pages/schedule?id_school=${getIdSchool()}`,
@@ -38,4 +44,19 @@ export const getScheduleService = async (): Promise<ScheduleResponse> => {
     throw new Error(error?.detail || "Error al obtener el horario");
   }
   return response.json();
+};
+
+// TODO: reemplazar con el endpoint real cuando esté disponible
+export const updateScheduleCellService = async (data: UpdateScheduleCellData): Promise<void> => {
+  const response = await fetchWithAuth(
+    `/myschool/schedule/${data.id_schedule}?id_school=${getIdSchool()}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ id_subject: data.id_subject, id_staff: data.id_staff }),
+    }
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error?.detail || "Error al actualizar el horario");
+  }
 };
