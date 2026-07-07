@@ -76,6 +76,8 @@ function MyHours() {
             schedule={schedule}
             schools={schools}
             onAvailabilityDeleted={refetchSchedule}
+              selectedSchool={selectedSchool}
+
           />
         </div>
       </Flex>

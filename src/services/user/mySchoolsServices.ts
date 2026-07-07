@@ -19,7 +19,7 @@ export interface StaffColor {
 }
 
 export interface ScheduleItem {
-  type: "class" | "unavailable" | "overlapping";
+  type: "class" | "unavailable" | "overlapping" | "full_unavailable";
   id_module: number;
   name: string;
   day: string;

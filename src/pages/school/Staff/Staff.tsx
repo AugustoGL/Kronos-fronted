@@ -42,7 +42,7 @@ function StaffPage() {
 
   return (
     <div className='contenedor-tabla'>
-      <SearchStaffModal opened={opened} close={close} />
+      <ProfileStaffModal opened={opened} close={close} />
       <div className="contenedor-tabla-filtros">
         <Button.Group>
           <Button
